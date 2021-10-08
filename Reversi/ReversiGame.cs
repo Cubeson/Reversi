@@ -9,12 +9,15 @@ namespace Reversi
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        Texture2D squareTextureLight;
-        Texture2D squareTextureDark;
-        Texture2D squareTextureAlternating;
-        Texture2D circleWhite;
-        Texture2D circleBlack;
-        
+        TextureWrapper squareTextureLight = new TextureWrapper();
+        TextureWrapper squareTextureDark = new TextureWrapper();
+        TextureWrapper circleWhite = new TextureWrapper();
+        TextureWrapper circleBlack = new TextureWrapper();
+
+
+        SlotSquare[] slots;
+        SlotDisk diskBlack = new SlotDisk();
+        SlotDisk diskWhite = new SlotDisk();
 
         public ReversiGame()
         {
@@ -26,6 +29,26 @@ namespace Reversi
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
+            diskBlack.color = circleBlack;
+            diskWhite.color = circleWhite;
+            slots = new SlotSquare[64];
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    int index = j + i * 8;
+
+                    if (i % 2 == 0 && j % 2 == 0 || i % 2 == 1 && j % 2 == 1)
+                        slots[index] = new SlotSquare(j * 16, i * 16, squareTextureDark);
+                    else
+                        slots[index] = new SlotSquare(j * 16, i * 16, squareTextureLight);
+                }
+            }
+
+            slots[3].disk = diskWhite;
+            slots[16].disk = diskWhite;
+            slots[40].disk = diskWhite;
+            slots[42].disk = diskBlack;
 
             base.Initialize();
         }
@@ -35,11 +58,12 @@ namespace Reversi
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
-            squareTextureLight = Content.Load<Texture2D>("textures/square_green_light");
-            squareTextureDark = Content.Load<Texture2D>("textures/square_green_dark");
-            circleWhite = Content.Load<Texture2D>("textures/circle_black");
-            circleBlack = Content.Load<Texture2D>("textures/circle_white");
-            
+            squareTextureLight.texture = Content.Load<Texture2D>("textures/square_green_light");
+            squareTextureDark.texture = Content.Load<Texture2D>("textures/square_green_dark");
+            circleWhite.texture = Content.Load<Texture2D>("textures/circle_white");
+            circleBlack.texture = Content.Load<Texture2D>("textures/circle_black");
+
+
         }
 
         protected override void Update(GameTime gameTime)
@@ -50,6 +74,7 @@ namespace Reversi
             // TODO: Add your update logic here
 
             base.Update(gameTime);
+
         }
 
         protected override void Draw(GameTime gameTime)
@@ -59,34 +84,10 @@ namespace Reversi
             // TODO: Add your drawing code here
             _spriteBatch.Begin();
 
-            bool alternate = false;
-            int tx_width = 16;
-            int tx_height = 16;
-            for(int x = 0; x< 8; x = x + 1)
+            foreach(var slot in slots)
             {
-                for(int y = 0; y<8; y = y + 1)
-                {
-                    var square_green = new Rectangle(x* tx_width, y* tx_height, tx_width, tx_height);
-                    if (alternate)
-                    {
-                        alternate = false;
-                        squareTextureAlternating = squareTextureDark;
-                    }
-                    else
-                    {
-                        alternate = true;
-                        squareTextureAlternating = squareTextureLight;
-                    }
-
-                    _spriteBatch.Draw(squareTextureAlternating, square_green, Color.White);
-                }
-
+                slot.Draw(_spriteBatch);
             }
-            var circle = new Rectangle(4 * tx_width, 3 * tx_height, tx_width, tx_height);
-            _spriteBatch.Draw(circleBlack, circle, Color.White);
-
-
-
             _spriteBatch.End();
 
             base.Draw(gameTime);

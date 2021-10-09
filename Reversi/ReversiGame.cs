@@ -14,11 +14,14 @@ namespace Reversi
         TextureWrapper circleWhite = new TextureWrapper();
         TextureWrapper circleBlack = new TextureWrapper();
 
+        private SpriteFont font;
 
         SlotSquare[] slots;
         SlotDisk diskBlack = new SlotDisk();
         SlotDisk diskWhite = new SlotDisk();
 
+        int xoff;
+        int yoff;
         public ReversiGame()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -32,6 +35,11 @@ namespace Reversi
             diskBlack.color = circleBlack;
             diskWhite.color = circleWhite;
             slots = new SlotSquare[64];
+
+            // 800 x 480
+            xoff = (_graphics.PreferredBackBufferWidth / 2 - 4*32);
+            yoff = (_graphics.PreferredBackBufferHeight / 2 - 4*32);
+
             for (int i = 0; i < 8; i++)
             {
                 for (int j = 0; j < 8; j++)
@@ -39,9 +47,9 @@ namespace Reversi
                     int index = j + i * 8;
 
                     if (i % 2 == 0 && j % 2 == 0 || i % 2 == 1 && j % 2 == 1)
-                        slots[index] = new SlotSquare(j * 16, i * 16, squareTextureDark);
+                        slots[index] = new SlotSquare(j * 32 + xoff, i * 32 + yoff, squareTextureDark);
                     else
-                        slots[index] = new SlotSquare(j * 16, i * 16, squareTextureLight);
+                        slots[index] = new SlotSquare(j * 32 + xoff, i * 32 + yoff, squareTextureLight);
                 }
             }
 
@@ -62,7 +70,7 @@ namespace Reversi
             squareTextureDark.texture = Content.Load<Texture2D>("textures/square_green_dark");
             circleWhite.texture = Content.Load<Texture2D>("textures/circle_white");
             circleBlack.texture = Content.Load<Texture2D>("textures/circle_black");
-
+            font = Content.Load<SpriteFont>("File");
 
         }
 
@@ -73,6 +81,34 @@ namespace Reversi
 
             // TODO: Add your update logic here
 
+            var mouse = Mouse.GetState();
+            
+
+            if(mouse.X >0 && mouse.Y > 0 && mouse.X < _graphics.PreferredBackBufferWidth && mouse.Y < _graphics.PreferredBackBufferHeight)
+            {
+
+                int xstart = slots[0].x;
+                int xend = slots[63].x + slots[63].color.texture.Width*2;
+                int ystart = slots[0].y;
+                int yend = slots[63].y + slots[63].color.texture.Height*2;
+
+                if(mouse.X > xstart && mouse.Y > ystart && mouse.X <= xend && mouse.Y <= yend)
+                {
+                    int index = (mouse.X - xoff) / 32 + (mouse.Y - yoff) / 32 * 8;
+                    if (index >= 0 && index < 64)
+                    {
+                        if (mouse.LeftButton == ButtonState.Pressed)
+                            slots[index].disk = diskBlack;
+                        else if (mouse.RightButton == ButtonState.Pressed)
+                            slots[index].disk = diskWhite;
+                    }
+                }
+
+            }
+            else
+            {
+
+            }
             base.Update(gameTime);
 
         }
@@ -88,6 +124,9 @@ namespace Reversi
             {
                 slot.Draw(_spriteBatch);
             }
+            var mouse = Mouse.GetState();
+            //_spriteBatch.DrawString(font, _graphics.PreferredBackBufferHeight.ToString(), new Vector2(300, 300), Color.Black);
+            //_spriteBatch.DrawString(font, _graphics.PreferredBackBufferWidth.ToString(), new Vector2(300, 400), Color.Black);
             _spriteBatch.End();
 
             base.Draw(gameTime);

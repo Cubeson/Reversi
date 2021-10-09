@@ -3,18 +3,11 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Reversi
 {
-
-    //enum SlotDisk : sbyte
-    //{
-    //    WHITE = 0,
-    //    BLACK = 1,
-    //    EMPTY = -1
-    //}
     class SlotDisk
     {
         public TextureWrapper color { get; set; }
     }
-    class SlotSquare
+    class SlotSquare : Drawable
     {
         public int x { get; set; }
         public int y { get; set; }
@@ -30,13 +23,13 @@ namespace Reversi
 
         }
 
-        public void Draw(SpriteBatch spriteBatch, int xoff = 0, int yoff = 0)
+        public void Draw(SpriteBatch spriteBatch)
         {
-            var slotToDraw = new Rectangle(x+xoff, y+yoff, color.texture.Width, color.texture.Height);
+            var slotToDraw = new Rectangle(x, y, color.texture.Width * 2, color.texture.Height * 2);
             spriteBatch.Draw(color.texture, slotToDraw, Color.White);
             if (disk != null)
             {
-                var diskToDraw = new Rectangle(x + xoff, y+ yoff, disk.color.texture.Width, disk.color.texture.Height);
+                var diskToDraw = new Rectangle(x, y, disk.color.texture.Width * 2, disk.color.texture.Height * 2);
                 spriteBatch.Draw(disk.color.texture, diskToDraw, Color.White);
             }
             

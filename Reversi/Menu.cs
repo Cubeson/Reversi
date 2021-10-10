@@ -5,7 +5,6 @@
     {
         int index = 0;
         MenuComponent[] menuComponents;
-        Window window;
         public Menu(MenuComponent[] components)
         {
             menuComponents = components;
@@ -31,18 +30,6 @@
         {
             if (index >= menuComponents.Length - 1) return;
             index++;
-        }
-        public Window getWindow()
-        {
-            return window;
-        }
-        public void setWindow(Window window)
-        {
-            this.window = window;
-        }
-        public void closeWindow()
-        {
-            this.window = null;
         }
     }
 }

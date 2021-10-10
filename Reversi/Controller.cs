@@ -4,6 +4,11 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Myra.Graphics2D.UI;
+using Myra.Attributes;
+using Myra.MML;
+using Myra.Utility;
+
 
 namespace Reversi
 {
@@ -14,7 +19,6 @@ namespace Reversi
 
         private Texture2D squareTextureLight, squareTextureDark;
         private Texture2D circleWhite, circleBlack;
-
         private Game game;
         private SpriteFont font;
         private bool shouldUpdate = true;
@@ -127,15 +131,6 @@ namespace Reversi
 
             var keyboard = Keyboard.GetState();
 
-            if(menuStack.Peek().getWindow() != null)
-            {
-                if (keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Enter))
-                {
-                    menuStack.Peek().closeWindow();
-                }
-                    
-            }
-            else
             {
                 if (keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Down))
                 {
@@ -166,10 +161,11 @@ namespace Reversi
                     }
                     else if (menuStack.Peek().getCurrentComponent() == MenuComponents.BoardSize)
                     {
-                        menuStack.Peek().setWindow(new Window(_graphics.PreferredBackBufferWidth/2,
-                            _graphics.PreferredBackBufferHeight/2
-                            ,100,60,
-                            boardSize.ToString()));
+                        //menuStack.Peek().setWindow(new Window(_graphics.PreferredBackBufferWidth/4,
+                        //    _graphics.PreferredBackBufferHeight/4
+                        //    ,300,200,
+                        //    boardSize.ToString()));
+                        //inputBuffer = new string("");
                     }
                 }
             }
@@ -233,13 +229,6 @@ namespace Reversi
                 else
                     _spriteBatch.DrawString(font, c.getMessage(), new Vector2(5, menuY), Color.Black);
                 menuY += 15;
-            }
-            if(menuStack.Peek().getWindow() != null)
-            {
-                var window = menuStack.Peek().getWindow();
-                var windowToDraw = new Rectangle(window.X, window.Y, window.Width, window.Height);
-                _spriteBatch.Draw(squareTextureDark, windowToDraw, Color.White);
-                _spriteBatch.DrawString(font, "test", new Vector2(window.X, window.Y), Color.Black);
             }
             
             

@@ -18,6 +18,7 @@ namespace Reversi
         private Game game;
         private SpriteFont font;
         private bool shouldUpdate = true;
+        private int boardSize = 8;
         private readonly int offsetX = 60;
         private readonly int offsetY = 30;
         private int dimension, startX, startY, step;
@@ -125,52 +126,56 @@ namespace Reversi
             }
 
             var keyboard = Keyboard.GetState();
-            if (keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Down))
-            {
-                menuStack.Peek().IndexUp();
-            }
-            if (keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Up))
-            {
-                menuStack.Peek().IndexDown();
-            }
 
-            if (keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Enter))
+            if(menuStack.Peek().getWindow() != null)
             {
-                if (menuStack.Peek().getCurrentComponent() == MenuComponents.Exit)
+                if (keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Enter))
                 {
-                    if (menuStack.Count() <= 1)
-                        Exit();
-                    else menuStack.Pop();
+                    menuStack.Peek().closeWindow();
                 }
-                else if (menuStack.Peek().getCurrentComponent() == MenuComponents.Options)
-                {
-                    this.menuStack.Push(new Menu(new MenuComponent[] {MenuComponents.BoardSize,MenuComponents.Exit}));
-                }
-                else if (menuStack.Peek().getCurrentComponent() == MenuComponents.NewGame)
-                {
-                    this.game.NewGame();
-                }
-                if(menuStack.Peek().getCurrentComponent() == MenuComponents.BoardSize)
-                {
                     
+            }
+            else
+            {
+                if (keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Down))
+                {
+                    menuStack.Peek().IndexUp();
+                }
+                if (keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Up))
+                {
+                    menuStack.Peek().IndexDown();
+                }
+
+                if (keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Enter))
+                {
+                    if (menuStack.Peek().getCurrentComponent() == MenuComponents.Exit)
+                    {
+                        if (menuStack.Count() <= 1)
+                            Exit();
+                        else menuStack.Pop();
+                    }
+                    else if (menuStack.Peek().getCurrentComponent() == MenuComponents.Options)
+                    {
+                        menuStack.Push(new Menu(new MenuComponent[] { MenuComponents.BoardSize, MenuComponents.Exit }));
+                        var bsize = menuStack.Peek().getMenuComponents()[0];
+                        bsize.AdditionalMessage = new string(" : " + boardSize.ToString());
+                    }
+                    else if (menuStack.Peek().getCurrentComponent() == MenuComponents.NewGame)
+                    {
+                        this.game.NewGame();
+                    }
+                    else if (menuStack.Peek().getCurrentComponent() == MenuComponents.BoardSize)
+                    {
+                        menuStack.Peek().setWindow(new Window(_graphics.PreferredBackBufferWidth/2,
+                            _graphics.PreferredBackBufferHeight/2
+                            ,100,60,
+                            boardSize.ToString()));
+                    }
                 }
             }
 
-            //if(keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Enter))
-            //{
-            //    if (menu.getCurrentComponent() == MenuComponents.Exit)
-            //    {
-            //        Exit();
-            //    }
-            //    if (menu.getCurrentComponent() == MenuComponents.Options)
-            //    {
-            //        this.menu = optionsMenu;
-            //    }
-            //    if (menu.getCurrentComponent() == MenuComponents.NewGame)
-            //    {
-            //        this.game.NewGame();
-            //    }
-            //}
+            
+
             lastKeyboardState = keyboard;
             base.Update(gameTime);
         }
@@ -192,18 +197,6 @@ namespace Reversi
 
             // TODO: Add your drawing code here
             _spriteBatch.Begin();
-
-            int menuY = 5;
-            foreach (var c in menuStack.Peek().getMenuComponents())
-            {
-
-                if (c == menuStack.Peek().getCurrentComponent())
-                {
-                    _spriteBatch.DrawString(font, " # " + c.Name,new Vector2(5, menuY), Color.Black);
-                }else
-                    _spriteBatch.DrawString(font, c.Name, new Vector2(5, menuY), Color.Black);
-                menuY += 15;
-            }
 
             bool lightSquare = false;
             for (int j = 0; j < this.dimension; j++)
@@ -228,6 +221,29 @@ namespace Reversi
                     lightSquare = !lightSquare;
                 }
             }
+
+            int menuY = 5;
+            foreach (var c in menuStack.Peek().getMenuComponents())
+            {
+
+                if (c == menuStack.Peek().getCurrentComponent())
+                {
+                    _spriteBatch.DrawString(font, " # " + c.getMessage(), new Vector2(5, menuY), Color.Black);
+                }
+                else
+                    _spriteBatch.DrawString(font, c.getMessage(), new Vector2(5, menuY), Color.Black);
+                menuY += 15;
+            }
+            if(menuStack.Peek().getWindow() != null)
+            {
+                var window = menuStack.Peek().getWindow();
+                var windowToDraw = new Rectangle(window.X, window.Y, window.Width, window.Height);
+                _spriteBatch.Draw(squareTextureDark, windowToDraw, Color.White);
+                _spriteBatch.DrawString(font, "test", new Vector2(window.X, window.Y), Color.Black);
+            }
+            
+            
+
             //_spriteBatch.DrawString(font, _graphics.PreferredBackBufferHeight.ToString(), new Vector2(300, 300), Color.Black);
             //_spriteBatch.DrawString(font, _graphics.PreferredBackBufferWidth.ToString(), new Vector2(300, 400), Color.Black);
             _spriteBatch.End();

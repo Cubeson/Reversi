@@ -88,10 +88,12 @@ namespace Reversi
                 {
                     for (int y = 0; y < this.dimension; y++)
                     {
-                        int tx = this.startX + step * x, ty = this.startY + step * y;
+                        int tx = this.startX + this.step * x;
+                        int ty = this.startY + this.step * y;
                         this.coordTranslator.Add(new Point(x, y), new Point(tx, ty));
                     }
                 }
+                this.shouldUpdate = false;
             }
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
@@ -100,19 +102,20 @@ namespace Reversi
             // TODO: Add your update logic here
 
             var mouse = Mouse.GetState();
-            if (mouse.X > this.startX && mouse.Y > this.startY && mouse.X < this.startX +
+            if ((mouse.LeftButton == ButtonState.Pressed || mouse.RightButton == ButtonState.Pressed)
+                && mouse.X > this.startX && mouse.Y > this.startY && mouse.X < this.startX +
                 this.dimension * this.step && mouse.Y < this.startY + this.dimension * this.step)
             {
                 // Make a move...
-                // TODO: Validate move
+                // TODO: Validate move using IsLegal
                 var pos = this.coordTranslator.First(p =>
                     mouse.X >= p.Value.X && mouse.Y >= p.Value.Y
                     && mouse.X <= p.Value.X + this.step &&
                     mouse.Y <= p.Value.Y + this.step).Key;
-                char color = (mouse.LeftButton == ButtonState.Pressed) ? 'W' :
-                    (mouse.RightButton == ButtonState.Pressed) ? 'B' : '\0';
+                char color = (mouse.LeftButton == ButtonState.Pressed) ? 'W' : 'B';
                 if (!color.Equals('\0')) this.game.MakeMove(pos.X, pos.Y, color);
             }
+
             base.Update(gameTime);
         }
 

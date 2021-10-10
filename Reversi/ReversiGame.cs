@@ -9,19 +9,21 @@ namespace Reversi
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        TextureWrapper squareTextureLight = new TextureWrapper();
-        TextureWrapper squareTextureDark = new TextureWrapper();
-        TextureWrapper circleWhite = new TextureWrapper();
-        TextureWrapper circleBlack = new TextureWrapper();
-
         private SpriteFont font;
-
-        SlotSquare[] slots;
-        SlotDisk diskBlack = new SlotDisk();
-        SlotDisk diskWhite = new SlotDisk();
 
         int xoff;
         int yoff;
+        int scale;
+        public int ToIndex(int x, int y)
+        {
+            return ( ( (x - xoff) / (map.Slots[0].texture.Width *scale ) )
+                    +  ( (y - yoff) / (map.Slots[0].texture.Height *scale )) * map.Size );
+
+            //return ((x - xoff) *scale) / (map.Slots[0].texture.Width * scale)
+            //   + ((y - yoff) *scale) / (map.Slots[0].texture.Height * scale * map.Size);
+        }
+
+        Map map;
         public ReversiGame()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -32,31 +34,14 @@ namespace Reversi
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-            diskBlack.color = circleBlack;
-            diskWhite.color = circleWhite;
-            slots = new SlotSquare[64];
 
             // 800 x 480
-            xoff = (_graphics.PreferredBackBufferWidth / 2 - 4*32);
-            yoff = (_graphics.PreferredBackBufferHeight / 2 - 4*32);
+            //xoff = (_graphics.PreferredBackBufferWidth / 2 - 4*32);
+            xoff = 200;
+            //yoff = (_graphics.PreferredBackBufferHeight / 2 - 4*32);
+            yoff = 200;
 
-            for (int i = 0; i < 8; i++)
-            {
-                for (int j = 0; j < 8; j++)
-                {
-                    int index = j + i * 8;
-
-                    if (i % 2 == 0 && j % 2 == 0 || i % 2 == 1 && j % 2 == 1)
-                        slots[index] = new SlotSquare(j * 32 + xoff, i * 32 + yoff, squareTextureDark);
-                    else
-                        slots[index] = new SlotSquare(j * 32 + xoff, i * 32 + yoff, squareTextureLight);
-                }
-            }
-
-            slots[3].disk = diskWhite;
-            slots[16].disk = diskWhite;
-            slots[40].disk = diskWhite;
-            slots[42].disk = diskBlack;
+            scale = 2;
 
             base.Initialize();
         }
@@ -66,10 +51,15 @@ namespace Reversi
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
-            squareTextureLight.texture = Content.Load<Texture2D>("textures/square_green_light");
-            squareTextureDark.texture = Content.Load<Texture2D>("textures/square_green_dark");
-            circleWhite.texture = Content.Load<Texture2D>("textures/circle_white");
-            circleBlack.texture = Content.Load<Texture2D>("textures/circle_black");
+
+            ResourceManager.squareTextureLight = Content.Load<Texture2D>("textures/square_green_light");
+            ResourceManager.squareTextureDark = Content.Load<Texture2D>("textures/square_green_dark");
+            ResourceManager.circleWhite = Content.Load<Texture2D>("textures/circle_white");
+            ResourceManager.circleBlack = Content.Load<Texture2D>("textures/circle_black");
+
+            SlotDisk.diskBlack.texture = ResourceManager.circleBlack;
+            SlotDisk.diskWhite.texture = ResourceManager.circleWhite;
+
             font = Content.Load<SpriteFont>("File");
 
         }
@@ -81,33 +71,45 @@ namespace Reversi
 
             // TODO: Add your update logic here
 
+            if (map == null)
+                map = new Map(8);
+            KeyboardState kstate = Keyboard.GetState();
+            if (kstate.IsKeyDown(Keys.N))
+                map = new Map(8);
+
             var mouse = Mouse.GetState();
-            
 
-            if(mouse.X >0 && mouse.Y > 0 && mouse.X < _graphics.PreferredBackBufferWidth && mouse.Y < _graphics.PreferredBackBufferHeight)
+            //int xstart = map.Slots[0].x + xoff;
+            //int xend = (map.Slots[map.Size * map.Size - 1].x 
+            //    + map.Slots[map.Size * map.Size - 1].texture.Width)
+            //    +xoff;
+            //int ystart = map.Slots[0].y + yoff;
+            //int yend = (map.Slots[map.Size * map.Size - 1].y 
+            //    + map.Slots[map.Size * map.Size - 1].texture.Height)
+            //    + yoff;
+            int xstart = scale * map.Slots[0].x + xoff;
+            int xend = scale * (map.Slots[map.Size * map.Size - 1].x
+                * map.Slots[0].texture.Width)
+                + xoff + scale * map.Slots[0].texture.Width;
+            int ystart = scale * map.Slots[0].y + yoff;
+            int yend = scale * (map.Slots[map.Size * map.Size - 1].y
+                * map.Slots[0].texture.Height)
+                + yoff + scale * map.Slots[0].texture.Height;
+
+
+            if (mouse.X > xstart && mouse.Y > ystart && mouse.X <= xend && mouse.Y <= yend)
             {
+                //int index = ((mouse.X - xoff) / map.Slots[0].texture.Width
+                //    + (mouse.Y - yoff) / map.Slots[0].texture.Height * map.Size);
+                int index = ToIndex(mouse.X, mouse.Y);
 
-                int xstart = slots[0].x;
-                int xend = slots[63].x + slots[63].color.texture.Width*2;
-                int ystart = slots[0].y;
-                int yend = slots[63].y + slots[63].color.texture.Height*2;
-
-                if(mouse.X > xstart && mouse.Y > ystart && mouse.X <= xend && mouse.Y <= yend)
+                if (index >= 0 && index < map.Size * map.Size)
                 {
-                    int index = (mouse.X - xoff) / 32 + (mouse.Y - yoff) / 32 * 8;
-                    if (index >= 0 && index < 64)
-                    {
-                        if (mouse.LeftButton == ButtonState.Pressed)
-                            slots[index].disk = diskBlack;
-                        else if (mouse.RightButton == ButtonState.Pressed)
-                            slots[index].disk = diskWhite;
-                    }
+                    if (mouse.LeftButton == ButtonState.Pressed)
+                        map.SetSlot(index, SlotDisk.diskBlack);
+                    else if (mouse.RightButton == ButtonState.Pressed)
+                        map.SetSlot(index, SlotDisk.diskWhite);
                 }
-
-            }
-            else
-            {
-
             }
             base.Update(gameTime);
 
@@ -120,12 +122,30 @@ namespace Reversi
             // TODO: Add your drawing code here
             _spriteBatch.Begin();
 
-            foreach(var slot in slots)
-            {
-                slot.Draw(_spriteBatch);
-            }
+            map.Draw(_spriteBatch,xoff,yoff,scale);
+
             var mouse = Mouse.GetState();
-            //_spriteBatch.DrawString(font, _graphics.PreferredBackBufferHeight.ToString(), new Vector2(300, 300), Color.Black);
+
+            int index = ToIndex(mouse.X, mouse.Y);
+
+            int xstart = scale * map.Slots[0].x + xoff;
+            int xend = scale * (map.Slots[map.Size * map.Size - 1].x
+                * map.Slots[0].texture.Width)
+                + xoff + scale * map.Slots[0].texture.Width;
+            int ystart = scale * map.Slots[0].y + yoff;
+            int yend = scale * (map.Slots[map.Size * map.Size - 1].y
+                * map.Slots[0].texture.Height)
+                + yoff + scale * map.Slots[0].texture.Height;
+
+            _spriteBatch.DrawString(font, (mouse.X).ToString(), new Vector2(50, 50), Color.Black);
+            _spriteBatch.DrawString(font, xstart.ToString(), new Vector2(50, 100), Color.Black);
+            _spriteBatch.DrawString(font, xend.ToString(), new Vector2(50, 150), Color.Black);            
+
+            _spriteBatch.DrawString(font, (mouse.Y).ToString(), new Vector2(150, 50), Color.Black);
+            _spriteBatch.DrawString(font, ystart.ToString(), new Vector2(150, 100), Color.Black);
+            _spriteBatch.DrawString(font, yend.ToString(), new Vector2(150, 150), Color.Black);
+
+            _spriteBatch.DrawString(font, index.ToString(), new Vector2(250, 50), Color.Black);
             //_spriteBatch.DrawString(font, _graphics.PreferredBackBufferWidth.ToString(), new Vector2(300, 400), Color.Black);
             _spriteBatch.End();
 

@@ -5,6 +5,6 @@ namespace Reversi
 {
     interface Drawable
     {
-        public void Draw(SpriteBatch spriteBatch);
+        public void Draw(SpriteBatch spriteBatch, int xoffset = 0,int yoffset = 0, int scale = 1);
     }
 }

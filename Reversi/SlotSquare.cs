@@ -5,32 +5,41 @@ namespace Reversi
 {
     class SlotDisk
     {
-        public TextureWrapper color { get; set; }
+        public Texture2D texture { get; set; }
+
+        public static SlotDisk diskBlack = new SlotDisk();
+        public static SlotDisk diskWhite = new SlotDisk();
     }
     class SlotSquare : Drawable
     {
         public int x { get; set; }
         public int y { get; set; }
-        public TextureWrapper color { get; set; }
+        public Texture2D texture { get; set; }
         public SlotDisk disk { get; set; }
 
-        public SlotSquare(int x,int y, TextureWrapper color)
+        public SlotSquare(int x,int y, Texture2D texture)
         {
             this.disk = null;
-            this.color = color;
+            this.texture = texture;
             this.x = x;
             this.y = y;
 
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        public void Draw(SpriteBatch spriteBatch, int xoffset = 0, int yoffset = 0, int scale = 1)
         {
-            var slotToDraw = new Rectangle(x, y, color.texture.Width * 2, color.texture.Height * 2);
-            spriteBatch.Draw(color.texture, slotToDraw, Color.White);
+            var slotToDraw = new Rectangle(scale * x*texture.Width + xoffset,
+                scale * y*texture.Height + yoffset,
+                scale * texture.Width,
+                scale * texture.Height);
+            spriteBatch.Draw(texture, slotToDraw, Color.White);
             if (disk != null)
             {
-                var diskToDraw = new Rectangle(x, y, disk.color.texture.Width * 2, disk.color.texture.Height * 2);
-                spriteBatch.Draw(disk.color.texture, diskToDraw, Color.White);
+                var diskToDraw = new Rectangle(scale * x*disk.texture.Width + xoffset,
+                    scale * y * disk.texture.Height + yoffset,
+                    scale * disk.texture.Width,
+                    scale * disk.texture.Height);
+                spriteBatch.Draw(disk.texture, diskToDraw, Color.White);
             }
             
         }

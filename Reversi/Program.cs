@@ -7,8 +7,8 @@ namespace Reversi
         [STAThread]
         static void Main()
         {
-            using (var game = new ReversiGame())
-                game.Run();
+            using (var controller = new Controller())
+                controller.Run();
         }
     }
 }

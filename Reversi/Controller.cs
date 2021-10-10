@@ -23,7 +23,8 @@ namespace Reversi
         private int dimension, startX, startY, step;
         private Dictionary<Point, Point> coordTranslator;
 
-        private Menu menu;
+        private Stack<IMenu> menuStack;
+
         private KeyboardState lastKeyboardState;
 
         public Controller()
@@ -51,8 +52,9 @@ namespace Reversi
             this.game.Init(new Player[] { playerA, playerB }, this.dimension, traditional);
             this.game.NewGame();
 
-            MenuComponent[] components = new MenuComponent[] { MenuComponents.NewGame, MenuComponents.Options, MenuComponents.Exit }; ;
-            this.menu = new Menu(components);
+            this.menuStack = new Stack<IMenu>();
+
+            this.menuStack.Push(new Menu(new MenuComponent[] { MenuComponents.NewGame, MenuComponents.Options, MenuComponents.Exit }));
 
             // Default screen size: 800 x 480
 
@@ -125,29 +127,50 @@ namespace Reversi
             var keyboard = Keyboard.GetState();
             if (keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Down))
             {
-                menu.IndexUp();
+                menuStack.Peek().IndexUp();
             }
             if (keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Up))
             {
-                menu.IndexDown();
+                menuStack.Peek().IndexDown();
             }
-            if(keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Enter))
-            {
-                if (menu.getCurrentComponent() == MenuComponents.Exit)
-                {
-                    Exit();
-                }
-                if (menu.getCurrentComponent() == MenuComponents.Options)
-                {
 
+            if (keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Enter))
+            {
+                if (menuStack.Peek().getCurrentComponent() == MenuComponents.Exit)
+                {
+                    if (menuStack.Count() <= 1)
+                        Exit();
+                    else menuStack.Pop();
                 }
-                if (menu.getCurrentComponent() == MenuComponents.NewGame)
+                else if (menuStack.Peek().getCurrentComponent() == MenuComponents.Options)
+                {
+                    this.menuStack.Push(new Menu(new MenuComponent[] {MenuComponents.BoardSize,MenuComponents.Exit}));
+                }
+                else if (menuStack.Peek().getCurrentComponent() == MenuComponents.NewGame)
                 {
                     this.game.NewGame();
                 }
-
-
+                if(menuStack.Peek().getCurrentComponent() == MenuComponents.BoardSize)
+                {
+                    
+                }
             }
+
+            //if(keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Enter))
+            //{
+            //    if (menu.getCurrentComponent() == MenuComponents.Exit)
+            //    {
+            //        Exit();
+            //    }
+            //    if (menu.getCurrentComponent() == MenuComponents.Options)
+            //    {
+            //        this.menu = optionsMenu;
+            //    }
+            //    if (menu.getCurrentComponent() == MenuComponents.NewGame)
+            //    {
+            //        this.game.NewGame();
+            //    }
+            //}
             lastKeyboardState = keyboard;
             base.Update(gameTime);
         }
@@ -171,10 +194,10 @@ namespace Reversi
             _spriteBatch.Begin();
 
             int menuY = 5;
-            foreach (var c in menu.getMenuComponents())
+            foreach (var c in menuStack.Peek().getMenuComponents())
             {
-                
-                if (c == menu.getCurrentComponent())
+
+                if (c == menuStack.Peek().getCurrentComponent())
                 {
                     _spriteBatch.DrawString(font, " # " + c.Name,new Vector2(5, menuY), Color.Black);
                 }else

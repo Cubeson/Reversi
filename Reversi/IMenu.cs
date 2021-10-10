@@ -12,6 +12,7 @@
         public static MenuComponent NewGame = new MenuComponent("New Game");
         public static MenuComponent Options = new MenuComponent("Options");
         public static MenuComponent Exit    = new MenuComponent("Exit");
+        public static MenuComponent BoardSize    = new MenuComponent("Board Size");
     }
 
     interface IMenu

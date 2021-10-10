@@ -23,6 +23,9 @@ namespace Reversi
         private int dimension, startX, startY, step;
         private Dictionary<Point, Point> coordTranslator;
 
+        private Menu menu;
+        private KeyboardState lastKeyboardState;
+
         public Controller()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -47,6 +50,9 @@ namespace Reversi
             this.game = new Game();
             this.game.Init(new Player[] { playerA, playerB }, this.dimension, traditional);
             this.game.NewGame();
+
+            MenuComponent[] components = new MenuComponent[] { MenuComponents.NewGame, MenuComponents.Options, MenuComponents.Exit }; ;
+            this.menu = new Menu(components);
 
             // Default screen size: 800 x 480
 
@@ -116,6 +122,33 @@ namespace Reversi
                 if (!color.Equals('\0')) this.game.MakeMove(pos.X, pos.Y, color);
             }
 
+            var keyboard = Keyboard.GetState();
+            if (keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Down))
+            {
+                menu.IndexUp();
+            }
+            if (keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Up))
+            {
+                menu.IndexDown();
+            }
+            if(keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Enter))
+            {
+                if (menu.getCurrentComponent() == MenuComponents.Exit)
+                {
+                    Exit();
+                }
+                if (menu.getCurrentComponent() == MenuComponents.Options)
+                {
+
+                }
+                if (menu.getCurrentComponent() == MenuComponents.NewGame)
+                {
+                    this.game.NewGame();
+                }
+
+
+            }
+            lastKeyboardState = keyboard;
             base.Update(gameTime);
         }
 
@@ -136,6 +169,18 @@ namespace Reversi
 
             // TODO: Add your drawing code here
             _spriteBatch.Begin();
+
+            int menuY = 5;
+            foreach (var c in menu.getMenuComponents())
+            {
+                
+                if (c == menu.getCurrentComponent())
+                {
+                    _spriteBatch.DrawString(font, " # " + c.Name,new Vector2(5, menuY), Color.Black);
+                }else
+                    _spriteBatch.DrawString(font, c.Name, new Vector2(5, menuY), Color.Black);
+                menuY += 15;
+            }
 
             bool lightSquare = false;
             for (int j = 0; j < this.dimension; j++)

@@ -3,8 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Reversi
 {
-    using Color = Microsoft.Xna.Framework.Color;
-
     internal class Square
     {
         /// <summary>
@@ -29,10 +27,15 @@ namespace Reversi
 
         public Square(int x, int y, char color = '\0')
         {
-            this.Disk = color;
-            this.IsEmpty = color.Equals('\0');
             this.X = x;
             this.Y = y;
+            this.Place(color);
+        }
+
+        public void Place(char color)
+        {
+            this.Disk = color;
+            this.IsEmpty = color.Equals('\0');
         }
     }
 }

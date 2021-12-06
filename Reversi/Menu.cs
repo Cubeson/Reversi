@@ -9,9 +9,9 @@ namespace Reversi
 {
     internal class Menu
     {
-        int buttonWidthDefault = 120;
-        int buttonHeightDefault = 80;
-        private GraphicsDeviceManager graphics;
+        private readonly int buttonWidthDefault = 120;
+        private readonly int buttonHeightDefault = 80;
+        private readonly GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
         private Desktop desktop;
         public Menu(GraphicsDeviceManager graphics, SpriteBatch spriteBatch)
@@ -20,12 +20,13 @@ namespace Reversi
             this.spriteBatch = spriteBatch;
             this.desktop = new Desktop();
             desktop.Root = NewMainMenu();
-
         }
+
         public void Draw()
         {
             desktop.Render();
         }
+
         private Panel NewMainMenu()
         {
             Panel panel = FullWindowPanel();
@@ -35,13 +36,12 @@ namespace Reversi
                 ShowGridLines = false,
                 ColumnSpacing = 8,
                 RowSpacing = 8,
-                Left = (int)(graphics.PreferredBackBufferWidth / 2) - buttonHeightDefault/2,
+                Left = (int)(graphics.PreferredBackBufferWidth / 2) - buttonHeightDefault / 2,
                 Top =  buttonHeightDefault,
             };
 
             grid.ColumnsProportions.Add(new Proportion());
             grid.RowsProportions.Add(new Proportion());
-
 
             TextButton newGameButton = new TextButton();
             newGameButton.Text = "New Game";
@@ -51,7 +51,7 @@ namespace Reversi
             newGameButton.GridColumn = 0;
             newGameButton.TouchDown += (s, e) =>
             {
-
+                Controller.isPlaying = true;
             };
             grid.AddChild(newGameButton);
 
@@ -64,7 +64,6 @@ namespace Reversi
             {
                 desktop = new Desktop();
                 desktop.Root = NewOptionsMenu();
-
             };
             grid.AddChild(optionsButton);
 
@@ -81,7 +80,6 @@ namespace Reversi
                 Environment.Exit(0);
             };
             panel.AddChild(exitButton);
-
             return panel;
         }
 
@@ -89,11 +87,9 @@ namespace Reversi
         {
             Panel panel = FullWindowPanel();
             AddBackButton(panel);
-
-
-
             return panel;
         }
+
         private Panel NewOptionsMenu()
         {
             Panel panel = FullWindowPanel();
@@ -105,7 +101,6 @@ namespace Reversi
                 RowSpacing = 8,
                 Left = (int)(graphics.PreferredBackBufferWidth / 2),
                 Top = (int)(graphics.PreferredBackBufferHeight / 2)
-
             };
 
             // Set partitioning configuration
@@ -182,12 +177,13 @@ namespace Reversi
                     fov = float.Parse(fovStr);
                     speed = float.Parse(speedStr);
                     count = int.Parse(countStr);
-
                 }
-                catch (FormatException ex)
+                catch (FormatException)
                 {
-                    AddPopUpWindow(panel, (graphics.PreferredBackBufferWidth / 2), (graphics.PreferredBackBufferHeight / 2),
-                        String.Format("At least one of the arguments is invalid!"));
+                    AddPopUpWindow(panel,
+                        graphics.PreferredBackBufferWidth / 2,
+                        graphics.PreferredBackBufferHeight / 2,
+                        string.Format("At least one of the arguments is invalid!"));
                     return;
                 }
 
@@ -198,12 +194,10 @@ namespace Reversi
 
             grid.Widgets.Add(saveButton);
 
-
             panel.AddChild(grid);
             AddBackButton(panel);
             return panel;
         }
-
 
         private void AddBackButton(MultipleItemsContainerBase container)
         {
@@ -219,6 +213,7 @@ namespace Reversi
             };
             container.AddChild(button);
         }
+
         private Panel FullWindowPanel()
         {
             Panel panel = new Panel();
@@ -228,6 +223,7 @@ namespace Reversi
             panel.Height = windowHeight;
             return panel;
         }
+
         private void AddPopUpWindow(MultipleItemsContainerBase container, int Left = 50, int Top = 50, string message = "Exit")
         {
             Window window = new Window();
@@ -237,7 +233,6 @@ namespace Reversi
             label.Text = message;
             label.HorizontalAlignment = HorizontalAlignment.Center;
             window.Content = label;
-
 
             container.AddChild(window);
 

@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Reversi
 {
-    internal class Game : IGame
+    internal class Game : IGame, IDisposable
     {
         private Square[,] board;
         private Player[] players;
@@ -198,5 +198,7 @@ namespace Reversi
             this.players[0].HasTurn = true;
             this.players[1].HasTurn = false;
         }
+
+        public void Dispose() => this.Dispose();
     }
 }

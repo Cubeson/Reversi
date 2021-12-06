@@ -22,6 +22,7 @@ namespace Reversi
         private Texture2D circleWhite, circleBlack;
         private Game game;
         private SpriteFont font;
+        internal static bool isPlaying = false;
         private bool shouldUpdate = true;
         private readonly int offsetX = 60;
         private readonly int offsetY = 30;
@@ -29,8 +30,6 @@ namespace Reversi
         private Dictionary<Point, Point> coordTranslator;
 
         Menu menu;
-
-        private KeyboardState lastKeyboardState;
 
         public Controller()
         {
@@ -45,9 +44,8 @@ namespace Reversi
             this.shouldUpdate = true;
         }
 
-        protected override void Initialize()
+        internal void InitGame()
         {
-            // TODO: Menu screen with options?
             Player playerA = new Player("A");
             Player playerB = new Player("B");
             bool traditional = true;
@@ -56,10 +54,10 @@ namespace Reversi
             this.game = new Game();
             this.game.Init(new Player[] { playerA, playerB }, this.boardSize, traditional);
             this.game.NewGame();
+        }
 
-
-            // Default screen size: 800 x 480
-
+        protected override void Initialize()
+        {
             this.coordTranslator = new Dictionary<Point, Point>();
             base.Initialize();
         }
@@ -78,11 +76,18 @@ namespace Reversi
             this.font = Content.Load<SpriteFont>("File");
 
             menu = new Menu(_graphics,_spriteBatch);
-
         }
 
         protected override void Update(GameTime gameTime)
         {
+            if (this.game == null && isPlaying)
+                this.InitGame();
+
+            else if (this.game != null && !isPlaying)
+                this.game.Dispose();
+
+            if (this.game == null) return;
+
             int totalWidth = _graphics.PreferredBackBufferWidth;
             int totalHeight = _graphics.PreferredBackBufferHeight;
 
@@ -111,8 +116,8 @@ namespace Reversi
                 this.shouldUpdate = false;
             }
 
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed
+                || Keyboard.GetState().IsKeyDown(Keys.Escape)) Exit();
 
             // Make-move logic
 
@@ -132,9 +137,6 @@ namespace Reversi
                     this.game.MakeMove(pos.X, pos.Y, color);
             }
 
-            // Handle menu options
-
-
             base.Update(gameTime);
         }
 
@@ -153,37 +155,37 @@ namespace Reversi
             int size = this.boardSize * this.boardSize;
             if (this.coordTranslator.Count < size) return;
 
-            // TODO: Add your drawing code here
-            _spriteBatch.Begin();
-
-            bool lightSquare = false;
-            for (int j = 0; j < this.boardSize; j++)
+            if (this.game != null && isPlaying)
             {
-                lightSquare = !lightSquare;
-                for (int i = 0; i < this.boardSize; i++)
+                _spriteBatch.Begin();
+
+                bool lightSquare = false;
+                for (int j = 0; j < this.boardSize; j++)
                 {
-                    Point p = this.coordTranslator[new Point(i, j)];
-                    var destination = new Rectangle(p.X, p.Y, this.step, this.step);
-
-                    Texture2D texture = lightSquare == true ?
-                        this.squareTextureLight : this.squareTextureDark;
-                    _spriteBatch.Draw(texture, destination, Color.White);
-
-                    Square square = this.game.Board[i, j];
-                    if (!square.IsEmpty)
-                    {
-                        Texture2D disk = square.Disk.Equals('W') ?
-                            this.circleWhite : this.circleBlack;
-                        _spriteBatch.Draw(disk, destination, Color.White);
-                    }
                     lightSquare = !lightSquare;
+                    for (int i = 0; i < this.boardSize; i++)
+                    {
+                        Point p = this.coordTranslator[new Point(i, j)];
+                        var destination = new Rectangle(p.X, p.Y, this.step, this.step);
+
+                        Texture2D texture = lightSquare == true ?
+                            this.squareTextureLight : this.squareTextureDark;
+                        _spriteBatch.Draw(texture, destination, Color.White);
+
+                        Square square = this.game.Board[i, j];
+                        if (!square.IsEmpty)
+                        {
+                            Texture2D disk = square.Disk.Equals('W') ?
+                                this.circleWhite : this.circleBlack;
+                            _spriteBatch.Draw(disk, destination, Color.White);
+                        }
+                        lightSquare = !lightSquare;
+                    }
                 }
+                _spriteBatch.End();
             }
 
-            _spriteBatch.End();
-
-            //_desktop.Render();
-            menu.Draw();
+            if (!isPlaying) menu.Draw();
 
             base.Draw(gameTime);
         }

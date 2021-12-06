@@ -9,6 +9,6 @@ namespace Reversi
         public int boardSize = 8;
         public string playerA = "A";
         public string playerB = "B";
-        public bool isGameTraditional = false;
+        public bool isGameTraditional = true;
     }
 }

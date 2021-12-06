@@ -8,6 +8,7 @@ using Myra.Graphics2D.UI;
 using Myra.Attributes;
 using Myra.MML;
 using Myra.Utility;
+using Myra;
 
 namespace Reversi
 {
@@ -15,6 +16,7 @@ namespace Reversi
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
+        //private Desktop _desktop;
 
         private Texture2D squareTextureLight, squareTextureDark;
         private Texture2D circleWhite, circleBlack;
@@ -26,7 +28,7 @@ namespace Reversi
         private int boardSize, startX, startY, step;
         private Dictionary<Point, Point> coordTranslator;
 
-        private Stack<IMenu> menuStack;
+        Menu menu;
 
         private KeyboardState lastKeyboardState;
 
@@ -55,13 +57,6 @@ namespace Reversi
             this.game.Init(new Player[] { playerA, playerB }, this.boardSize, traditional);
             this.game.NewGame();
 
-            this.menuStack = new Stack<IMenu>();
-            this.menuStack.Push(new Menu(new MenuComponent[]
-            {
-                MenuComponents.NewGame,
-                MenuComponents.Options,
-                MenuComponents.Exit
-            }));
 
             // Default screen size: 800 x 480
 
@@ -71,7 +66,9 @@ namespace Reversi
 
         protected override void LoadContent()
         {
+            MyraEnvironment.Game = this;
             _spriteBatch = new SpriteBatch(GraphicsDevice);
+            //_desktop = new Desktop();
 
             // TODO: use this.Content to load your game content here
             this.squareTextureLight = Content.Load<Texture2D>("textures/square_green_light");
@@ -79,6 +76,9 @@ namespace Reversi
             this.circleWhite = Content.Load<Texture2D>("textures/circle_white");
             this.circleBlack = Content.Load<Texture2D>("textures/circle_black");
             this.font = Content.Load<SpriteFont>("File");
+
+            menu = new Menu(_graphics,_spriteBatch);
+
         }
 
         protected override void Update(GameTime gameTime)
@@ -134,46 +134,7 @@ namespace Reversi
 
             // Handle menu options
 
-            var keyboard = Keyboard.GetState();
-            {
-                if (keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Down))
-                {
-                    menuStack.Peek().IndexUp();
-                }
-                if (keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Up))
-                {
-                    menuStack.Peek().IndexDown();
-                }
-                if (keyboard != lastKeyboardState && keyboard.IsKeyDown(Keys.Enter))
-                {
-                    if (menuStack.Peek().getCurrentComponent() == MenuComponents.Exit)
-                    {
-                        if (menuStack.Count() <= 1)
-                            Exit();
-                        else menuStack.Pop();
-                    }
-                    else if (menuStack.Peek().getCurrentComponent() == MenuComponents.Options)
-                    {
-                        menuStack.Push(new Menu(new MenuComponent[] { MenuComponents.BoardSize, MenuComponents.Exit }));
-                        var bsize = menuStack.Peek().getMenuComponents()[0];
-                        bsize.AdditionalMessage = new string(" : " + this.boardSize.ToString());
-                    }
-                    else if (menuStack.Peek().getCurrentComponent() == MenuComponents.NewGame)
-                    {
-                        this.game.NewGame();
-                    }
-                    else if (menuStack.Peek().getCurrentComponent() == MenuComponents.BoardSize)
-                    {
-                        //menuStack.Peek().setWindow(new Window(_graphics.PreferredBackBufferWidth/4,
-                        //    _graphics.PreferredBackBufferHeight/4
-                        //    ,300,200,
-                        //    boardSize.ToString()));
-                        //inputBuffer = new string("");
-                    }
-                }
-            }
 
-            lastKeyboardState = keyboard;
             base.Update(gameTime);
         }
 
@@ -219,24 +180,10 @@ namespace Reversi
                 }
             }
 
-            int menuY = 5;
-            foreach (var c in menuStack.Peek().getMenuComponents())
-            {
-
-                if (c == menuStack.Peek().getCurrentComponent())
-                {
-                    _spriteBatch.DrawString(font, " # " + c.getMessage(), new Vector2(5, menuY), Color.Black);
-                }
-                else
-                    _spriteBatch.DrawString(font, c.getMessage(), new Vector2(5, menuY), Color.Black);
-                menuY += 15;
-            }
-            
-            
-
-            //_spriteBatch.DrawString(font, _graphics.PreferredBackBufferHeight.ToString(), new Vector2(300, 300), Color.Black);
-            //_spriteBatch.DrawString(font, _graphics.PreferredBackBufferWidth.ToString(), new Vector2(300, 400), Color.Black);
             _spriteBatch.End();
+
+            //_desktop.Render();
+            menu.Draw();
 
             base.Draw(gameTime);
         }

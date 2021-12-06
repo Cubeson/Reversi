@@ -14,10 +14,12 @@ namespace Reversi
         private readonly GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
         private Desktop desktop;
-        public Menu(GraphicsDeviceManager graphics, SpriteBatch spriteBatch)
+        private GameState gameState;
+        public Menu(GameState gameState,Options options,GraphicsDeviceManager graphics, SpriteBatch spriteBatch)
         {
             this.graphics = graphics;
             this.spriteBatch = spriteBatch;
+            this.gameState = gameState;
             this.desktop = new Desktop();
             desktop.Root = NewMainMenu();
         }
@@ -51,7 +53,10 @@ namespace Reversi
             newGameButton.GridColumn = 0;
             newGameButton.TouchDown += (s, e) =>
             {
-                Controller.isPlaying = true;
+                gameState.NewGame();
+                desktop = new Desktop();
+                desktop.Root = NewGamePanel();
+                
             };
             grid.AddChild(newGameButton);
 
@@ -209,6 +214,10 @@ namespace Reversi
             button.Height = 40;
             button.TouchDown += (s, e) =>
             {
+                if (gameState.isPlaying)
+                {
+                    gameState.DisposeGame();
+                }
                 desktop.Root = NewMainMenu();
             };
             container.AddChild(button);

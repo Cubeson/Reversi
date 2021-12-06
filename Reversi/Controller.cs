@@ -20,14 +20,16 @@ namespace Reversi
 
         private Texture2D squareTextureLight, squareTextureDark;
         private Texture2D circleWhite, circleBlack;
-        private Game game;
+        private GameState _gameState;
+        //private Game game;
         private SpriteFont font;
         internal static bool isPlaying = false;
         private bool shouldUpdate = true;
         private readonly int offsetX = 60;
         private readonly int offsetY = 30;
-        private int boardSize, startX, startY, step;
+        private int startX, startY, step;
         private Dictionary<Point, Point> coordTranslator;
+        Options _options;
 
         Menu menu;
 
@@ -44,17 +46,17 @@ namespace Reversi
             this.shouldUpdate = true;
         }
 
-        internal void InitGame()
-        {
-            Player playerA = new Player("A");
-            Player playerB = new Player("B");
-            bool traditional = true;
-            this.boardSize = 8;
+        //internal void InitGame()
+        //{
+        //    Player playerA = new Player("A");
+        //    Player playerB = new Player("B");
+        //    bool traditional = true;
+        //    this.boardSize = 8;
 
-            this.game = new Game();
-            this.game.Init(new Player[] { playerA, playerB }, this.boardSize, traditional);
-            this.game.NewGame();
-        }
+        //    this.game = new Game();
+        //    this.game.Init(new Player[] { playerA, playerB }, this.boardSize, traditional);
+        //    this.game.NewGame();
+        //}
 
         protected override void Initialize()
         {
@@ -75,18 +77,15 @@ namespace Reversi
             this.circleBlack = Content.Load<Texture2D>("textures/circle_black");
             this.font = Content.Load<SpriteFont>("File");
 
-            menu = new Menu(_graphics,_spriteBatch);
+
+            _options = new Options();
+            _gameState = new GameState(_options);
+            menu = new Menu(_gameState,_options,_graphics,_spriteBatch);
         }
 
         protected override void Update(GameTime gameTime)
         {
-            if (this.game == null && isPlaying)
-                this.InitGame();
-
-            else if (this.game != null && !isPlaying)
-                this.game.Dispose();
-
-            if (this.game == null) return;
+            if (!_gameState.isPlaying) return;
 
             int totalWidth = _graphics.PreferredBackBufferWidth;
             int totalHeight = _graphics.PreferredBackBufferHeight;
@@ -100,13 +99,13 @@ namespace Reversi
                 int count = width < height ? width : height;
                 this.startX = (totalWidth - count) / 2;
                 this.startY = (totalHeight - count) / 2;
-                this.step = count / this.boardSize;
+                this.step = count / _options.boardSize;
 
                 // Then translate the coordinates to access squares faster.
                 this.coordTranslator.Clear();
-                for (int x = 0; x < this.boardSize; x++)
+                for (int x = 0; x < _options.boardSize; x++)
                 {
-                    for (int y = 0; y < this.boardSize; y++)
+                    for (int y = 0; y < _options.boardSize; y++)
                     {
                         int tx = this.startX + this.step * x;
                         int ty = this.startY + this.step * y;
@@ -124,7 +123,7 @@ namespace Reversi
             var mouse = Mouse.GetState();
             if ((mouse.LeftButton == ButtonState.Pressed || mouse.RightButton == ButtonState.Pressed)
                 && mouse.X > this.startX && mouse.Y > this.startY && mouse.X < this.startX +
-                this.boardSize * this.step && mouse.Y < this.startY + this.boardSize * this.step)
+                _options.boardSize * this.step && mouse.Y < this.startY + _options.boardSize * this.step)
             {
                 var pos = this.coordTranslator.First(p =>
                     mouse.X >= p.Value.X && mouse.Y >= p.Value.Y
@@ -133,8 +132,8 @@ namespace Reversi
                 char color = (mouse.LeftButton == ButtonState.Pressed) ? 'W' : 'B';
 
                 // Validate and make move..
-                if (this.game.CanMakeMove(pos.X, pos.Y, color))
-                    this.game.MakeMove(pos.X, pos.Y, color);
+                if (this._gameState.game.CanMakeMove(pos.X, pos.Y, color))
+                    this._gameState.game.MakeMove(pos.X, pos.Y, color);
             }
 
             base.Update(gameTime);
@@ -142,28 +141,35 @@ namespace Reversi
 
         protected override void Draw(GameTime gameTime)
         {
-            int totalWidth = _graphics.PreferredBackBufferWidth;
-            int totalHeight = _graphics.PreferredBackBufferHeight;
+
 
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
+            int size = _options.boardSize * _options.boardSize;
+            //if (this.coordTranslator.Count < size) return;
+            _spriteBatch.Begin();
+            DrawBoard();
+            _spriteBatch.End();
+            menu.Draw();
+
+            base.Draw(gameTime);
+        }
+
+        private void DrawBoard()
+        {
+            int totalWidth = _graphics.PreferredBackBufferWidth;
+            int totalHeight = _graphics.PreferredBackBufferHeight;
             // Stop drawing a board if screen size is too small
             if (totalWidth <= this.offsetX + 20 ||
                 totalHeight <= this.offsetY + 20) return;
 
-            // Coord translator is not loaded yet
-            int size = this.boardSize * this.boardSize;
-            if (this.coordTranslator.Count < size) return;
-
-            if (this.game != null && isPlaying)
+            if (_gameState.isPlaying)
             {
-                _spriteBatch.Begin();
-
                 bool lightSquare = false;
-                for (int j = 0; j < this.boardSize; j++)
+                for (int j = 0; j < _options.boardSize; j++)
                 {
                     lightSquare = !lightSquare;
-                    for (int i = 0; i < this.boardSize; i++)
+                    for (int i = 0; i < _options.boardSize; i++)
                     {
                         Point p = this.coordTranslator[new Point(i, j)];
                         var destination = new Rectangle(p.X, p.Y, this.step, this.step);
@@ -172,7 +178,7 @@ namespace Reversi
                             this.squareTextureLight : this.squareTextureDark;
                         _spriteBatch.Draw(texture, destination, Color.White);
 
-                        Square square = this.game.Board[i, j];
+                        Square square = this._gameState.game.Board[i, j];
                         if (!square.IsEmpty)
                         {
                             Texture2D disk = square.Disk.Equals('W') ?
@@ -182,12 +188,8 @@ namespace Reversi
                         lightSquare = !lightSquare;
                     }
                 }
-                _spriteBatch.End();
+
             }
-
-            if (!isPlaying) menu.Draw();
-
-            base.Draw(gameTime);
         }
     }
 }

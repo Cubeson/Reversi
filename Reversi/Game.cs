@@ -18,6 +18,10 @@ namespace Reversi
         private int BoardSize { get; set; }
         private bool TraditionalSetup { get; set; }
 
+        public Player getCurrentPlayer()
+        {
+            return (from p in players where p.HasTurn select p).First();
+        }
         public void Init(Player[] players, int size = 8, bool traditional = true)
         {
             if (size % 2 != 0 || size < 4)

@@ -4,6 +4,7 @@ using Myra.Graphics2D.UI;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace Reversi
 {
@@ -94,6 +95,27 @@ namespace Reversi
         {
             Panel panel = FullWindowPanel();
             AddBackButton(panel);
+            Label label = new Label
+            {
+                Text = "",
+                Left = 10,
+                Top = 60,
+            };
+            panel.AddChild(label);
+
+            Thread t = new Thread( () =>
+            {
+                while (gameState.isPlaying)
+                {
+                    var player = gameState.game.getCurrentPlayer();
+                    var colorString = player.Color == 'W' ? "White" : "Black";
+                    var color = player.Color == 'W' ? Color.White : Color.Black;
+                    label.Text = String.Format("{0}'s Turn! [{1}]",player.Name,colorString);
+                    label.TextColor = color;
+                }
+            });
+            t.Start();
+
             return panel;
         }
 

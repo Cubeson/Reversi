@@ -15,11 +15,13 @@ namespace Reversi
         private SpriteBatch spriteBatch;
         private Desktop desktop;
         private GameState gameState;
+        private Options options;
         public Menu(GameState gameState,Options options,GraphicsDeviceManager graphics, SpriteBatch spriteBatch)
         {
             this.graphics = graphics;
             this.spriteBatch = spriteBatch;
             this.gameState = gameState;
+            this.options = options;
             this.desktop = new Desktop();
             desktop.Root = NewMainMenu();
         }
@@ -107,6 +109,7 @@ namespace Reversi
                 Left = (int)(graphics.PreferredBackBufferWidth / 2),
                 Top = (int)(graphics.PreferredBackBufferHeight / 2)
             };
+            int gridrow = 0;
 
             // Set partitioning configuration
             grid.ColumnsProportions.Add(new Proportion());
@@ -118,83 +121,55 @@ namespace Reversi
 
             // Add widgets
 
-            var fovLabel = new Label();
-            fovLabel.Text = "Fov";
-            fovLabel.HorizontalAlignment = HorizontalAlignment.Center;
-            grid.Widgets.Add(fovLabel);
+            var boardSizeLabel = new Label();
+            boardSizeLabel.Text = "Board Size";
+            boardSizeLabel.HorizontalAlignment = HorizontalAlignment.Center;
+            boardSizeLabel.GridRow = gridrow++;
+            grid.Widgets.Add(boardSizeLabel);
 
-            var speedLabel = new Label();
-            speedLabel.Text = "Speed";
-            speedLabel.HorizontalAlignment = HorizontalAlignment.Center;
-            speedLabel.GridRow = 1;
-            grid.Widgets.Add(speedLabel);
-
-            var countLabel = new Label();
-            countLabel.Text = "Count";
-            countLabel.HorizontalAlignment = HorizontalAlignment.Center;
-            countLabel.GridRow = 2;
-            grid.Widgets.Add(countLabel);
 
             /* ############# */
 
-            var fovTextBox = new TextBox();
-            fovTextBox.Text = "90";
-            fovTextBox.GridColumn = 1;
-            fovTextBox.MinWidth = 100;
-            fovTextBox.MaxWidth = 100;
-            grid.Widgets.Add(fovTextBox);
-
-            var speedTextBox = new TextBox();
-            speedTextBox.Text = "100";
-            speedTextBox.GridColumn = 1;
-            speedTextBox.GridRow = 1;
-            speedTextBox.MinWidth = 100;
-            speedTextBox.MaxWidth = 100;
-            grid.Widgets.Add(speedTextBox);
-
-            var countTextBox = new TextBox();
-            countTextBox.Text = "50";
-            countTextBox.GridColumn = 1;
-            countTextBox.GridRow = 2;
-            countTextBox.MinWidth = 100;
-            countTextBox.MaxWidth = 100;
-            grid.Widgets.Add(countTextBox);
+            var boardSizeTextBox = new TextBox();
+            boardSizeTextBox.Text = options.boardSize.ToString();
+            boardSizeTextBox.GridColumn = 1;
+            boardSizeTextBox.MinWidth = 100;
+            boardSizeTextBox.MaxWidth = 100;
+            grid.Widgets.Add(boardSizeTextBox);
 
             var saveButton = new TextButton();
             saveButton.Text = "Save";
-            saveButton.GridRow = 3;
+            saveButton.GridRow = gridrow++;
 
             saveButton.TouchDown += (s, e) =>
             {
-                string fovStr = fovTextBox.Text.Trim();
+                string fovStr = boardSizeTextBox.Text.Trim();
                 fovStr = fovStr.Replace('.', ',');
-                string speedStr = speedTextBox.Text.Trim();
-                speedStr = speedStr.Replace('.', ',');
-                string countStr = countTextBox.Text.Trim();
-                countStr = countStr.Replace('.', ',');
+                string err = "";
 
-                float fov;
-                float speed;
-                int count;
-
+                int boardSize;
                 try
                 {
-                    fov = float.Parse(fovStr);
-                    speed = float.Parse(speedStr);
-                    count = int.Parse(countStr);
+                    boardSize = int.Parse(fovStr);
+                    if (boardSize < 4 || boardSize > 32 || boardSize % 2 != 0)
+                    {
+                        err += String.Format("Invalid board size: {0}",boardSize);
+                        throw new FormatException();
+                    }
+                    
                 }
                 catch (FormatException)
                 {
+                    if (err == "") err = "At least one of the arguments is invalid!";
                     AddPopUpWindow(panel,
                         graphics.PreferredBackBufferWidth / 2,
                         graphics.PreferredBackBufferHeight / 2,
-                        string.Format("At least one of the arguments is invalid!"));
+                        err);
                     return;
                 }
+                options.boardSize = boardSize;
+                boardSizeTextBox.Text = options.boardSize.ToString();
 
-                fovTextBox.Text = fov.ToString();
-                speedTextBox.Text = speed.ToString();
-                countTextBox.Text = count.ToString();
             };
 
             grid.Widgets.Add(saveButton);

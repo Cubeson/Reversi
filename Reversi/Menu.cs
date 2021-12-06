@@ -17,8 +17,10 @@ namespace Reversi
         private Desktop desktop;
         private GameState gameState;
         private Options options;
-        public Menu(GameState gameState,Options options,GraphicsDeviceManager graphics, SpriteBatch spriteBatch)
+        private FixedUpdate fixedUpdate;
+        public Menu(GameState gameState,Options options,FixedUpdate fixedUpdate,GraphicsDeviceManager graphics, SpriteBatch spriteBatch)
         {
+            this.fixedUpdate = fixedUpdate;
             this.graphics = graphics;
             this.spriteBatch = spriteBatch;
             this.gameState = gameState;
@@ -101,20 +103,28 @@ namespace Reversi
                 Left = 10,
                 Top = 60,
             };
+
+
             panel.AddChild(label);
 
-            Thread t = new Thread( () =>
-            {
-                while (gameState.isPlaying)
+            //FixedUpdate update = new FixedUpdate();
+            VoidOp operation = null;
+            operation = () => {
+
+                if(label == null || !gameState.isPlaying)
+                {
+                    fixedUpdate.Remove(operation);
+                }
+                else
                 {
                     var player = gameState.game.getCurrentPlayer();
                     var colorString = player.Color == 'W' ? "White" : "Black";
                     var color = player.Color == 'W' ? Color.White : Color.Black;
-                    label.Text = String.Format("{0}'s Turn! [{1}]",player.Name,colorString);
+                    label.Text = String.Format("{0}'s Turn! [{1}]", player.Name, colorString);
                     label.TextColor = color;
                 }
-            });
-            t.Start();
+            };
+            fixedUpdate.Add(operation);
 
             return panel;
         }
@@ -140,8 +150,9 @@ namespace Reversi
             grid.RowsProportions.Add(new Proportion());
             grid.RowsProportions.Add(new Proportion());
             grid.RowsProportions.Add(new Proportion());
+            grid.RowsProportions.Add(new Proportion());
 
-            // Add widgets
+            /* 1st column */
 
             var boardSizeLabel = new Label();
             boardSizeLabel.Text = "Board Size";
@@ -149,40 +160,89 @@ namespace Reversi
             boardSizeLabel.GridRow = gridrow++;
             grid.Widgets.Add(boardSizeLabel);
 
+            var playerALabel = new Label();
+            playerALabel.Text = "Player 1 Name";
+            playerALabel.HorizontalAlignment = HorizontalAlignment.Center;
+            playerALabel.GridRow = gridrow++;
+            grid.Widgets.Add(playerALabel);
 
-            /* ############# */
+            var playerBLabel = new Label();
+            playerBLabel.Text = "Player 2 Name";
+            playerBLabel.HorizontalAlignment = HorizontalAlignment.Center;
+            playerBLabel.GridRow = gridrow++;
+            grid.Widgets.Add(playerBLabel);
 
-            var boardSizeTextBox = new TextBox();
-            boardSizeTextBox.Text = options.boardSize.ToString();
-            boardSizeTextBox.GridColumn = 1;
-            boardSizeTextBox.MinWidth = 100;
-            boardSizeTextBox.MaxWidth = 100;
-            grid.Widgets.Add(boardSizeTextBox);
+            var traditionalSetupLabel = new Label();
+            traditionalSetupLabel.Text = "Traditional Setup";
+            traditionalSetupLabel.HorizontalAlignment = HorizontalAlignment.Center;
+            traditionalSetupLabel.GridRow = gridrow++;
+            grid.Widgets.Add(traditionalSetupLabel);
 
             var saveButton = new TextButton();
             saveButton.Text = "Save";
             saveButton.GridRow = gridrow++;
+            grid.Widgets.Add(saveButton);
+
+            /* 2nd column */
+            gridrow = 0;
+            var boardSizeTextBox = new TextBox();
+            boardSizeTextBox.Text = options.boardSize.ToString();
+            boardSizeTextBox.GridColumn = 1;
+            boardSizeTextBox.GridRow = gridrow++;
+            boardSizeTextBox.MinWidth = 100;
+            boardSizeTextBox.MaxWidth = 100;
+            grid.Widgets.Add(boardSizeTextBox);
+
+            var playerATextBox = new TextBox();
+            playerATextBox.Text = options.playerA.ToString();
+            playerATextBox.GridColumn = 1;
+            playerATextBox.GridRow = gridrow++;
+            playerATextBox.MinWidth = 100;
+            playerATextBox.MaxWidth = 100;
+            grid.Widgets.Add(playerATextBox);
+
+            var playerBTextBox = new TextBox();
+            playerBTextBox.Text = options.playerB.ToString();
+            playerBTextBox.GridColumn = 1;
+            playerBTextBox.GridRow = gridrow++;
+            playerBTextBox.MinWidth = 100;
+            playerBTextBox.MaxWidth = 100;
+            grid.Widgets.Add(playerBTextBox);
+
+            var traditionalSetupCheckBox = new CheckBox();
+            traditionalSetupCheckBox.GridColumn = 1;
+            traditionalSetupCheckBox.GridRow = gridrow++;
+            traditionalSetupCheckBox.MinWidth = 100;
+            traditionalSetupCheckBox.MaxWidth = 100;
+            traditionalSetupCheckBox.IsChecked = options.isGameTraditional;
+            grid.Widgets.Add(traditionalSetupCheckBox);
 
             saveButton.TouchDown += (s, e) =>
             {
-                string fovStr = boardSizeTextBox.Text.Trim();
-                fovStr = fovStr.Replace('.', ',');
-                string err = "";
+                string boardSizeStr = boardSizeTextBox.Text.Trim();
+                string playerAName = playerATextBox.Text.Trim();
+                string playerBName = playerBTextBox.Text.Trim();
+                bool traditional = traditionalSetupCheckBox.IsChecked;
+                string err = "At least one of the arguments is invalid!\n";
 
                 int boardSize;
                 try
                 {
-                    boardSize = int.Parse(fovStr);
+                    bool throwException = false;
+                    boardSize = int.Parse(boardSizeStr);
                     if (boardSize < 4 || boardSize > 32 || boardSize % 2 != 0)
                     {
-                        err += String.Format("Invalid board size: {0}",boardSize);
+                        err += String.Format("Invalid board size: {0}\n",boardSize);
+                        throwException = true;
+                    }
+                    if (throwException)
+                    {
+                        err += "Changes were not saved.";
                         throw new FormatException();
                     }
-                    
                 }
                 catch (FormatException)
                 {
-                    if (err == "") err = "At least one of the arguments is invalid!";
                     AddPopUpWindow(panel,
                         graphics.PreferredBackBufferWidth / 2,
                         graphics.PreferredBackBufferHeight / 2,
@@ -190,6 +250,11 @@ namespace Reversi
                     return;
                 }
                 options.boardSize = boardSize;
+                options.playerA = playerAName;
+                options.playerB = playerBName;
+                options.isGameTraditional = traditional;
+
+
                 boardSizeTextBox.Text = options.boardSize.ToString();
 
             };

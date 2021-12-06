@@ -12,12 +12,13 @@ using Myra;
 
 namespace Reversi
 {
+    
     internal class Controller : Microsoft.Xna.Framework.Game
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         //private Desktop _desktop;
-
+        
         private Texture2D squareTextureLight, squareTextureDark;
         private Texture2D circleWhite, circleBlack;
         private GameState _gameState;
@@ -30,8 +31,10 @@ namespace Reversi
         private int startX, startY, step;
         private Dictionary<Point, Point> coordTranslator;
         Options _options;
-
+        FixedUpdate _fixedUpdate;
         Menu menu;
+
+
 
         public Controller()
         {
@@ -39,6 +42,7 @@ namespace Reversi
             Content.RootDirectory = "Content";
             Window.ClientSizeChanged += OnResize;
             IsMouseVisible = true;
+            _fixedUpdate = new FixedUpdate();
         }
 
         public void OnResize(object sender, EventArgs e)
@@ -80,7 +84,7 @@ namespace Reversi
 
             _options = new Options();
             _gameState = new GameState(_options);
-            menu = new Menu(_gameState,_options,_graphics,_spriteBatch);
+            menu = new Menu(_gameState,_options,_fixedUpdate,_graphics,_spriteBatch);
         }
 
         protected override void Update(GameTime gameTime)
@@ -135,7 +139,8 @@ namespace Reversi
                 if (this._gameState.game.CanMakeMove(pos.X, pos.Y, color))
                     this._gameState.game.MakeMove(pos.X, pos.Y, color);
             }
-
+            _fixedUpdate.Update();
+            
             base.Update(gameTime);
         }
 

@@ -188,8 +188,8 @@ namespace Reversi
                 ShowGridLines = false,
                 ColumnSpacing = 8,
                 RowSpacing = 8,
-                Left = (int)(graphics.PreferredBackBufferWidth / 2),
-                Top = (int)(graphics.PreferredBackBufferHeight / 2)
+                Left = (graphics.PreferredBackBufferWidth / 2) - buttonWidthDefault,
+                Top = (graphics.PreferredBackBufferHeight / 2) - buttonHeightDefault
             };
             int gridrow = 0;
 

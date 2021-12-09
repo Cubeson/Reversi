@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -203,6 +204,54 @@ namespace Reversi
             this.players[1].HasTurn = false;
             
         }
+        public void UserUpdate(Resources resources, GameOptions gameOptions)
+        {
+            // Make-move logic
 
+            var mouse = Mouse.GetState();
+            if ((mouse.LeftButton == ButtonState.Pressed || mouse.RightButton == ButtonState.Pressed)
+                && mouse.X > resources.startX && mouse.Y > resources.startY && mouse.X < resources.startX +
+                gameOptions.boardSize * resources.step && mouse.Y < resources.startY + gameOptions.boardSize * resources.step)
+            {
+                var pos = resources.coordTranslator.First(p =>
+                    mouse.X >= p.Value.X && mouse.Y >= p.Value.Y
+                    && mouse.X <= p.Value.X + resources.step &&
+                    mouse.Y <= p.Value.Y + resources.step).Key;
+                char color = (mouse.LeftButton == ButtonState.Pressed) ? 'W' : 'B';
+
+                // Validate and make move..
+                if (CanMakeMove(pos.X, pos.Y, color))
+                    MakeMove(pos.X, pos.Y, color);
+            }
+        }
+        public void UpdateBoardPositions(GraphicsDeviceManager graphics, Resources resources)
+        {
+            int totalWidth = graphics.PreferredBackBufferWidth;
+            int totalHeight = graphics.PreferredBackBufferHeight;
+
+            // Update board positions if user has changed the screen size..
+            int width = totalWidth - resources.offsetX * 2;
+            int height = totalHeight - resources.offsetY * 2;
+
+            int count = width < height ? width : height;
+            resources.startX = (totalWidth - count) / 2;
+            resources.startY = (totalHeight - count) / 2;
+            resources.step = count / BoardSize;
+
+            // Then translate the coordinates to access squares faster.
+            resources.coordTranslator.Clear();
+            for (int x = 0; x < BoardSize; x++)
+            {
+                for (int y = 0; y < BoardSize; y++)
+                {
+                    int tx = resources.startX + resources.step * x;
+                    int ty = resources.startY + resources.step * y;
+                    resources.coordTranslator.Add(new Point(x, y), new Point(tx, ty));
+                }
+            }
+            
+        }
     }
-}
+
+ }
+

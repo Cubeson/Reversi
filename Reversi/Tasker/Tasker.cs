@@ -13,8 +13,8 @@ namespace FunctionTasker
     */
     public class Tasker : ITasker
     {
-        private List<Func> funcList;
-        private List<Func>? funcsToRemoveList;
+        private readonly List<Func> funcList;
+        private readonly List<Func> funcsToRemoveList;
 
         public Tasker()
         {

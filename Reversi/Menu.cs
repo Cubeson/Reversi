@@ -14,25 +14,27 @@ namespace Reversi
         private readonly int buttonWidthDefault = 120;
         private readonly int buttonHeightDefault = 80;
         private readonly GraphicsDeviceManager graphics;
-        private SpriteBatch spriteBatch;
+        private readonly SpriteBatch spriteBatch;
         private Desktop desktop;
-        private GameState gameState;
-        private Options options;
-        //private FixedUpdate fixedUpdate;
-        private ITasker tasker;
-        public Menu(GameState gameState,Options options,ITasker tasker,GraphicsDeviceManager graphics, SpriteBatch spriteBatch)
+        private readonly GameState gameState;
+        private readonly GameOptions gameOptions;
+        private readonly Resources resources;
+        private readonly ITasker tasker;
+        public Menu(GameState gameState,GameOptions gameOptions,Resources resources,GraphicsDeviceManager graphics, SpriteBatch spriteBatch)
         {
-            this.tasker = tasker;
+            this.tasker = new Tasker();
             this.graphics = graphics;
             this.spriteBatch = spriteBatch;
             this.gameState = gameState;
-            this.options = options;
+            this.gameOptions = gameOptions;
+            this.resources = resources;
             this.desktop = new Desktop();
             desktop.Root = NewMainMenu();
         }
 
         public void Draw()
         {
+            tasker.Update();
             desktop.Render();
         }
 
@@ -45,51 +47,62 @@ namespace Reversi
                 ShowGridLines = false,
                 ColumnSpacing = 8,
                 RowSpacing = 8,
-                Left = (int)(graphics.PreferredBackBufferWidth / 2) - buttonHeightDefault / 2,
+                Left = (int)(graphics.PreferredBackBufferWidth / 2) - buttonWidthDefault / 2,
                 Top =  buttonHeightDefault,
             };
 
             grid.ColumnsProportions.Add(new Proportion());
             grid.RowsProportions.Add(new Proportion());
 
-            TextButton newGameButton = new TextButton();
-            newGameButton.Text = "New Game";
-            newGameButton.Width = buttonWidthDefault;
-            newGameButton.Height = buttonHeightDefault;
+            TextButton newGameButton = new TextButton
+            {
+                Text = "New Game",
+                Width = buttonWidthDefault,
+                Height = buttonHeightDefault,
 
-            newGameButton.GridColumn = 0;
+                GridColumn = 0
+            };
             newGameButton.TouchDown += (s, e) =>
             {
                 gameState.NewGame();
-                desktop = new Desktop();
-                desktop.Root = NewGamePanel();
-                
+                desktop = new Desktop
+                {
+                    Root = NewGamePanel()
+                };
+
             };
             grid.AddChild(newGameButton);
 
-            TextButton optionsButton = new TextButton();
-            optionsButton.Text = "Options";
-            optionsButton.Width = buttonWidthDefault;
-            optionsButton.Height = buttonHeightDefault;
-            optionsButton.GridRow = 1;
+            TextButton optionsButton = new TextButton
+            {
+                Text = "Options",
+                Width = buttonWidthDefault,
+                Height = buttonHeightDefault,
+                GridRow = 1
+            };
             optionsButton.TouchDown += (s, e) =>
             {
-                desktop = new Desktop();
-                desktop.Root = NewOptionsMenu();
+                desktop = new Desktop
+                {
+                    Root = NewOptionsMenu()
+                };
             };
             grid.AddChild(optionsButton);
 
             panel.AddChild(grid);
 
-            TextButton exitButton = new TextButton();
-            exitButton.Text = "Exit";
-            exitButton.Left = 5;
-            exitButton.Top = 5;
-            exitButton.Width = 50;
-            exitButton.Height = 40;
+            TextButton exitButton = new TextButton
+            {
+                Text = "Exit",
+                Left = 5,
+                Top = 5,
+                Width = 50,
+                Height = 40
+            };
             exitButton.TouchDown += (s, e) =>
             {
-                Environment.Exit(0);
+                resources.shouldExit = true;
+                //Environment.Exit(0);
             };
             panel.AddChild(exitButton);
             return panel;
@@ -106,27 +119,48 @@ namespace Reversi
                 Top = 60,
             };
 
-
             panel.AddChild(label);
 
-            //FixedUpdate update = new FixedUpdate();
-            //VoidOp operation = null;
-            //operation = () => {
+            tasker.AddTask( () =>
+            {
+                if (!gameState.isPlaying)
+                {
+                    return false;
+                }
 
-            //    if(label == null || !gameState.isPlaying)
-            //    {
-            //        fixedUpdate.Remove(operation);
-            //    }
-            //    else
-            //    {
-            //        var player = gameState.game.getCurrentPlayer();
-            //        var colorString = player.Color == 'W' ? "White" : "Black";
-            //        var color = player.Color == 'W' ? Color.White : Color.Black;
-            //        label.Text = String.Format("{0}'s Turn! [{1}]", player.Name, colorString);
-            //        label.TextColor = color;
-            //    }
-            //};
-            //fixedUpdate.Add(operation);
+                int totalWidth = graphics.PreferredBackBufferWidth;
+                int totalHeight = graphics.PreferredBackBufferHeight;
+                // Stop drawing a board if screen size is too small
+                if (totalWidth <= resources.offsetX + 20 ||
+                    totalHeight <= resources.offsetY + 20) return true;
+
+                bool lightSquare = false;
+                spriteBatch.Begin();
+                for (int j = 0; j < gameOptions.boardSize; j++)
+                {
+                    lightSquare = !lightSquare;
+                    for (int i = 0; i < gameOptions.boardSize; i++)
+                    {
+                        Point p = resources.coordTranslator[new Point(i, j)];
+                        var destination = new Rectangle(p.X, p.Y, resources.step, resources.step);
+
+                        Texture2D texture = lightSquare == true ?
+                            resources.squareTextureLight : resources.squareTextureDark;
+                        spriteBatch.Draw(texture, destination, Color.White);
+
+                        Square square = this.gameState.game.Board[i, j];
+                        if (!square.IsEmpty)
+                        {
+                            Texture2D disk = square.Disk.Equals('W') ?
+                                resources.circleWhite : resources.circleBlack;
+                            spriteBatch.Draw(disk, destination, Color.White);
+                        }
+                        lightSquare = !lightSquare;
+                    }
+                }
+                spriteBatch.End();
+                return true;
+            });
 
             tasker.AddTask(() => { 
                 if(label == null || !gameState.isPlaying)
@@ -170,67 +204,85 @@ namespace Reversi
 
             /* 1st column */
 
-            var boardSizeLabel = new Label();
-            boardSizeLabel.Text = "Board Size";
-            boardSizeLabel.HorizontalAlignment = HorizontalAlignment.Center;
-            boardSizeLabel.GridRow = gridrow++;
+            var boardSizeLabel = new Label
+            {
+                Text = "Board Size",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                GridRow = gridrow++
+            };
             grid.Widgets.Add(boardSizeLabel);
 
-            var playerALabel = new Label();
-            playerALabel.Text = "Player 1 Name";
-            playerALabel.HorizontalAlignment = HorizontalAlignment.Center;
-            playerALabel.GridRow = gridrow++;
+            var playerALabel = new Label
+            {
+                Text = "Player 1 Name",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                GridRow = gridrow++
+            };
             grid.Widgets.Add(playerALabel);
 
-            var playerBLabel = new Label();
-            playerBLabel.Text = "Player 2 Name";
-            playerBLabel.HorizontalAlignment = HorizontalAlignment.Center;
-            playerBLabel.GridRow = gridrow++;
+            var playerBLabel = new Label
+            {
+                Text = "Player 2 Name",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                GridRow = gridrow++
+            };
             grid.Widgets.Add(playerBLabel);
 
-            var traditionalSetupLabel = new Label();
-            traditionalSetupLabel.Text = "Traditional Setup";
-            traditionalSetupLabel.HorizontalAlignment = HorizontalAlignment.Center;
-            traditionalSetupLabel.GridRow = gridrow++;
+            var traditionalSetupLabel = new Label
+            {
+                Text = "Traditional Setup",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                GridRow = gridrow++
+            };
             grid.Widgets.Add(traditionalSetupLabel);
 
-            var saveButton = new TextButton();
-            saveButton.Text = "Save";
-            saveButton.GridRow = gridrow++;
+            var saveButton = new TextButton
+            {
+                Text = "Save",
+                GridRow = gridrow++
+            };
             grid.Widgets.Add(saveButton);
 
             /* 2nd column */
             gridrow = 0;
-            var boardSizeTextBox = new TextBox();
-            boardSizeTextBox.Text = options.boardSize.ToString();
-            boardSizeTextBox.GridColumn = 1;
-            boardSizeTextBox.GridRow = gridrow++;
-            boardSizeTextBox.MinWidth = 100;
-            boardSizeTextBox.MaxWidth = 100;
+            var boardSizeTextBox = new TextBox
+            {
+                Text = gameOptions.boardSize.ToString(),
+                GridColumn = 1,
+                GridRow = gridrow++,
+                MinWidth = 100,
+                MaxWidth = 100
+            };
             grid.Widgets.Add(boardSizeTextBox);
 
-            var playerATextBox = new TextBox();
-            playerATextBox.Text = options.playerA.ToString();
-            playerATextBox.GridColumn = 1;
-            playerATextBox.GridRow = gridrow++;
-            playerATextBox.MinWidth = 100;
-            playerATextBox.MaxWidth = 100;
+            var playerATextBox = new TextBox
+            {
+                Text = gameOptions.playerA.ToString(),
+                GridColumn = 1,
+                GridRow = gridrow++,
+                MinWidth = 100,
+                MaxWidth = 100
+            };
             grid.Widgets.Add(playerATextBox);
 
-            var playerBTextBox = new TextBox();
-            playerBTextBox.Text = options.playerB.ToString();
-            playerBTextBox.GridColumn = 1;
-            playerBTextBox.GridRow = gridrow++;
-            playerBTextBox.MinWidth = 100;
-            playerBTextBox.MaxWidth = 100;
+            var playerBTextBox = new TextBox
+            {
+                Text = gameOptions.playerB.ToString(),
+                GridColumn = 1,
+                GridRow = gridrow++,
+                MinWidth = 100,
+                MaxWidth = 100
+            };
             grid.Widgets.Add(playerBTextBox);
 
-            var traditionalSetupCheckBox = new CheckBox();
-            traditionalSetupCheckBox.GridColumn = 1;
-            traditionalSetupCheckBox.GridRow = gridrow++;
-            traditionalSetupCheckBox.MinWidth = 100;
-            traditionalSetupCheckBox.MaxWidth = 100;
-            traditionalSetupCheckBox.IsChecked = options.isGameTraditional;
+            var traditionalSetupCheckBox = new CheckBox
+            {
+                GridColumn = 1,
+                GridRow = gridrow++,
+                MinWidth = 100,
+                MaxWidth = 100,
+                IsChecked = gameOptions.isGameTraditional
+            };
             grid.Widgets.Add(traditionalSetupCheckBox);
 
             saveButton.TouchDown += (s, e) =>
@@ -265,13 +317,13 @@ namespace Reversi
                         err);
                     return;
                 }
-                options.boardSize = boardSize;
-                options.playerA = playerAName;
-                options.playerB = playerBName;
-                options.isGameTraditional = traditional;
+                gameOptions.boardSize = boardSize;
+                gameOptions.playerA = playerAName;
+                gameOptions.playerB = playerBName;
+                gameOptions.isGameTraditional = traditional;
 
 
-                boardSizeTextBox.Text = options.boardSize.ToString();
+                boardSizeTextBox.Text = gameOptions.boardSize.ToString();
 
             };
 
@@ -284,12 +336,14 @@ namespace Reversi
 
         private void AddBackButton(MultipleItemsContainerBase container)
         {
-            TextButton button = new TextButton();
-            button.Text = "Back";
-            button.Left = 5;
-            button.Top = 5;
-            button.Width = 50;
-            button.Height = 40;
+            TextButton button = new TextButton
+            {
+                Text = "Back",
+                Left = 5,
+                Top = 5,
+                Width = 50,
+                Height = 40
+            };
             button.TouchDown += (s, e) =>
             {
                 if (gameState.isPlaying)
@@ -313,12 +367,16 @@ namespace Reversi
 
         private void AddPopUpWindow(MultipleItemsContainerBase container, int Left = 50, int Top = 50, string message = "Exit")
         {
-            Window window = new Window();
-            window.Left = Left;
-            window.Top = Top;
-            Label label = new Label();
-            label.Text = message;
-            label.HorizontalAlignment = HorizontalAlignment.Center;
+            Window window = new Window
+            {
+                Left = Left,
+                Top = Top
+            };
+            Label label = new Label
+            {
+                Text = message,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
             window.Content = label;
 
             container.AddChild(window);

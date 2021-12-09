@@ -8,8 +8,9 @@ namespace Reversi
     {
         public Game game { get; private set; }
         public bool isPlaying { get; private set; }
-        public Options options { get; private set; }
-        public GameState(Options options)
+        public bool shouldUpdate = true;
+        public GameOptions options { get; private set; }
+        public GameState(GameOptions options)
         {
             game = new Game(); 
             this.options = options;
@@ -29,12 +30,12 @@ namespace Reversi
         {
             Player playerA = new Player(options.playerA);
             Player playerB = new Player(options.playerB);
-            bool traditional = true;
 
             this.game = new Game();
             this.game.Init(new Player[] { playerA, playerB }, options.boardSize, options.isGameTraditional);
             this.game.NewGame();
             this.isPlaying = true;
+            this.shouldUpdate = true;
         }
     }
 }

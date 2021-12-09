@@ -4,11 +4,11 @@ namespace Reversi
 {
     public static class Program
     {
-        [STAThread]
+        //[STAThread]
         static void Main()
         {
-            using (var controller = new Controller())
-                controller.Run();
+            using var controller = new Controller();
+            controller.Run();
         }
     }
 }

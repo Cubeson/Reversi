@@ -31,7 +31,6 @@ namespace Reversi
         private int startX, startY, step;
         private Dictionary<Point, Point> coordTranslator;
         Options _options;
-        //FixedUpdate _fixedUpdate;
         ITasker _tasker;
         Menu menu;
 
@@ -43,7 +42,6 @@ namespace Reversi
             Content.RootDirectory = "Content";
             Window.ClientSizeChanged += OnResize;
             IsMouseVisible = true;
-            //_fixedUpdate = new FixedUpdate();
             _tasker = new Tasker();
         }
 
@@ -74,9 +72,7 @@ namespace Reversi
         {
             MyraEnvironment.Game = this;
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-            //_desktop = new Desktop();
 
-            // TODO: use this.Content to load your game content here
             this.squareTextureLight = Content.Load<Texture2D>("textures/square_green_light");
             this.squareTextureDark = Content.Load<Texture2D>("textures/square_green_dark");
             this.circleWhite = Content.Load<Texture2D>("textures/circle_white");
@@ -91,56 +87,65 @@ namespace Reversi
 
         protected override void Update(GameTime gameTime)
         {
-            if (!_gameState.isPlaying) return;
-
-            int totalWidth = _graphics.PreferredBackBufferWidth;
-            int totalHeight = _graphics.PreferredBackBufferHeight;
-
-            if (this.shouldUpdate == true)
+            if (_gameState.isPlaying)
             {
-                // Update board positions if user has changed the screen size..
-                int width = totalWidth - this.offsetX * 2;
-                int height = totalHeight - this.offsetY * 2;
 
-                int count = width < height ? width : height;
-                this.startX = (totalWidth - count) / 2;
-                this.startY = (totalHeight - count) / 2;
-                this.step = count / _options.boardSize;
+                int totalWidth = _graphics.PreferredBackBufferWidth;
+                int totalHeight = _graphics.PreferredBackBufferHeight;
 
-                // Then translate the coordinates to access squares faster.
-                this.coordTranslator.Clear();
-                for (int x = 0; x < _options.boardSize; x++)
+                //if (this.shouldUpdate == true)
+                // TODO fix "shouldUpdate"
+                // temporary solution until "shouldUpdate" is fixed
+                if(true)
                 {
-                    for (int y = 0; y < _options.boardSize; y++)
+                    // Update board positions if user has changed the screen size..
+                    int width = totalWidth - this.offsetX * 2;
+                    int height = totalHeight - this.offsetY * 2;
+
+                    int count = width < height ? width : height;
+                    this.startX = (totalWidth - count) / 2;
+                    this.startY = (totalHeight - count) / 2;
+                    this.step = count / _options.boardSize;
+
+                    // Then translate the coordinates to access squares faster.
+                    this.coordTranslator.Clear();
+                    for (int x = 0; x < _options.boardSize; x++)
                     {
-                        int tx = this.startX + this.step * x;
-                        int ty = this.startY + this.step * y;
-                        this.coordTranslator.Add(new Point(x, y), new Point(tx, ty));
+                        for (int y = 0; y < _options.boardSize; y++)
+                        {
+                            int tx = this.startX + this.step * x;
+                            int ty = this.startY + this.step * y;
+                            this.coordTranslator.Add(new Point(x, y), new Point(tx, ty));
+                        }
                     }
+                    this.shouldUpdate = false;
                 }
-                this.shouldUpdate = false;
+
+                // Make-move logic
+
+                var mouse = Mouse.GetState();
+                if ((mouse.LeftButton == ButtonState.Pressed || mouse.RightButton == ButtonState.Pressed)
+                    && mouse.X > this.startX && mouse.Y > this.startY && mouse.X < this.startX +
+                    _options.boardSize * this.step && mouse.Y < this.startY + _options.boardSize * this.step)
+                {
+                    var pos = this.coordTranslator.First(p =>
+                        mouse.X >= p.Value.X && mouse.Y >= p.Value.Y
+                        && mouse.X <= p.Value.X + this.step &&
+                        mouse.Y <= p.Value.Y + this.step).Key;
+                    char color = (mouse.LeftButton == ButtonState.Pressed) ? 'W' : 'B';
+
+                    // Validate and make move..
+                    if (this._gameState.game.CanMakeMove(pos.X, pos.Y, color))
+                        this._gameState.game.MakeMove(pos.X, pos.Y, color);
+                }
             }
+
+
+
+
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed
-                || Keyboard.GetState().IsKeyDown(Keys.Escape)) Exit();
-
-            // Make-move logic
-
-            var mouse = Mouse.GetState();
-            if ((mouse.LeftButton == ButtonState.Pressed || mouse.RightButton == ButtonState.Pressed)
-                && mouse.X > this.startX && mouse.Y > this.startY && mouse.X < this.startX +
-                _options.boardSize * this.step && mouse.Y < this.startY + _options.boardSize * this.step)
-            {
-                var pos = this.coordTranslator.First(p =>
-                    mouse.X >= p.Value.X && mouse.Y >= p.Value.Y
-                    && mouse.X <= p.Value.X + this.step &&
-                    mouse.Y <= p.Value.Y + this.step).Key;
-                char color = (mouse.LeftButton == ButtonState.Pressed) ? 'W' : 'B';
-
-                // Validate and make move..
-                if (this._gameState.game.CanMakeMove(pos.X, pos.Y, color))
-                    this._gameState.game.MakeMove(pos.X, pos.Y, color);
-            }
+    || Keyboard.GetState().IsKeyDown(Keys.Escape)) Exit();
             _tasker.Update();
             
             base.Update(gameTime);
@@ -153,9 +158,9 @@ namespace Reversi
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             int size = _options.boardSize * _options.boardSize;
-            //if (this.coordTranslator.Count < size) return;
             _spriteBatch.Begin();
-            DrawBoard();
+            //if (!(this.coordTranslator.Count < size))
+                DrawBoard();
             _spriteBatch.End();
             menu.Draw();
 

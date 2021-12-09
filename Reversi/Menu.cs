@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using FunctionTasker;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Myra.Graphics2D.UI;
 using System;
@@ -17,10 +18,11 @@ namespace Reversi
         private Desktop desktop;
         private GameState gameState;
         private Options options;
-        private FixedUpdate fixedUpdate;
-        public Menu(GameState gameState,Options options,FixedUpdate fixedUpdate,GraphicsDeviceManager graphics, SpriteBatch spriteBatch)
+        //private FixedUpdate fixedUpdate;
+        private ITasker tasker;
+        public Menu(GameState gameState,Options options,ITasker tasker,GraphicsDeviceManager graphics, SpriteBatch spriteBatch)
         {
-            this.fixedUpdate = fixedUpdate;
+            this.tasker = tasker;
             this.graphics = graphics;
             this.spriteBatch = spriteBatch;
             this.gameState = gameState;
@@ -108,23 +110,37 @@ namespace Reversi
             panel.AddChild(label);
 
             //FixedUpdate update = new FixedUpdate();
-            VoidOp operation = null;
-            operation = () => {
+            //VoidOp operation = null;
+            //operation = () => {
 
+            //    if(label == null || !gameState.isPlaying)
+            //    {
+            //        fixedUpdate.Remove(operation);
+            //    }
+            //    else
+            //    {
+            //        var player = gameState.game.getCurrentPlayer();
+            //        var colorString = player.Color == 'W' ? "White" : "Black";
+            //        var color = player.Color == 'W' ? Color.White : Color.Black;
+            //        label.Text = String.Format("{0}'s Turn! [{1}]", player.Name, colorString);
+            //        label.TextColor = color;
+            //    }
+            //};
+            //fixedUpdate.Add(operation);
+
+            tasker.AddTask(() => { 
                 if(label == null || !gameState.isPlaying)
                 {
-                    fixedUpdate.Remove(operation);
+                    return false;
                 }
-                else
-                {
-                    var player = gameState.game.getCurrentPlayer();
-                    var colorString = player.Color == 'W' ? "White" : "Black";
-                    var color = player.Color == 'W' ? Color.White : Color.Black;
-                    label.Text = String.Format("{0}'s Turn! [{1}]", player.Name, colorString);
-                    label.TextColor = color;
-                }
-            };
-            fixedUpdate.Add(operation);
+                var player = gameState.game.getCurrentPlayer();
+                var colorString = player.Color == 'W' ? "White" : "Black";
+                var color = player.Color == 'W' ? Color.White : Color.Black;
+                label.Text = String.Format("{0}'s Turn! [{1}]", player.Name, colorString);
+                label.TextColor = color;
+
+                return true; 
+            });
 
             return panel;
         }

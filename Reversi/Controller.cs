@@ -9,7 +9,7 @@ using Myra.Attributes;
 using Myra.MML;
 using Myra.Utility;
 using Myra;
-
+using FunctionTasker;
 namespace Reversi
 {
     
@@ -31,7 +31,8 @@ namespace Reversi
         private int startX, startY, step;
         private Dictionary<Point, Point> coordTranslator;
         Options _options;
-        FixedUpdate _fixedUpdate;
+        //FixedUpdate _fixedUpdate;
+        ITasker _tasker;
         Menu menu;
 
 
@@ -42,7 +43,8 @@ namespace Reversi
             Content.RootDirectory = "Content";
             Window.ClientSizeChanged += OnResize;
             IsMouseVisible = true;
-            _fixedUpdate = new FixedUpdate();
+            //_fixedUpdate = new FixedUpdate();
+            _tasker = new Tasker();
         }
 
         public void OnResize(object sender, EventArgs e)
@@ -84,7 +86,7 @@ namespace Reversi
 
             _options = new Options();
             _gameState = new GameState(_options);
-            menu = new Menu(_gameState,_options,_fixedUpdate,_graphics,_spriteBatch);
+            menu = new Menu(_gameState,_options,_tasker,_graphics,_spriteBatch);
         }
 
         protected override void Update(GameTime gameTime)
@@ -139,7 +141,7 @@ namespace Reversi
                 if (this._gameState.game.CanMakeMove(pos.X, pos.Y, color))
                     this._gameState.game.MakeMove(pos.X, pos.Y, color);
             }
-            _fixedUpdate.Update();
+            _tasker.Update();
             
             base.Update(gameTime);
         }

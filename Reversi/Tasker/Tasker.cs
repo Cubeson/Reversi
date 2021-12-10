@@ -41,7 +41,7 @@ namespace FunctionTasker
             {
                 funcList.Remove(run);
             }
-            funcsToRemoveList?.Clear();
+            funcsToRemoveList.Clear();
         }
         public bool IsEmpty()
         {

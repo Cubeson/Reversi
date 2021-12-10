@@ -1,6 +1,8 @@
 ﻿using FunctionTasker;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Myra.Graphics2D.Brushes;
+using Myra.Graphics2D.Text;
 using Myra.Graphics2D.UI;
 using System;
 using System.Collections.Generic;
@@ -59,8 +61,9 @@ namespace Reversi
                 Text = "New Game",
                 Width = buttonWidthDefault,
                 Height = buttonHeightDefault,
-
-                GridColumn = 0
+                Background      = new SolidBrush(resources.colorButton),
+                OverBackground  = new SolidBrush(resources.colorButtonOver),
+                GridColumn = 0,
             };
             newGameButton.TouchDown += (s, e) =>
             {
@@ -72,12 +75,14 @@ namespace Reversi
 
             };
             grid.AddChild(newGameButton);
-
+            
             TextButton optionsButton = new TextButton
             {
                 Text = "Options",
                 Width = buttonWidthDefault,
                 Height = buttonHeightDefault,
+                Background = new SolidBrush(resources.colorButton),
+                OverBackground = new SolidBrush(resources.colorButtonOver),
                 GridRow = 1
             };
             optionsButton.TouchDown += (s, e) =>
@@ -97,7 +102,9 @@ namespace Reversi
                 Left = 5,
                 Top = 5,
                 Width = 50,
-                Height = 40
+                Height = 40,
+                Background = new SolidBrush(resources.colorButton),
+                OverBackground = new SolidBrush(resources.colorButtonOver),
             };
             exitButton.TouchDown += (s, e) =>
             {
@@ -112,14 +119,14 @@ namespace Reversi
         {
             Panel panel = FullWindowPanel();
             AddBackButton(panel);
-            Label label = new Label
+            Label playerLabel = new Label
             {
                 Text = "",
-                Left = 10,
-                Top = 60,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Top = 5,
             };
 
-            panel.AddChild(label);
+            panel.AddChild(playerLabel);
 
             tasker.AddTask( () =>
             {
@@ -163,15 +170,15 @@ namespace Reversi
             });
 
             tasker.AddTask(() => { 
-                if(label == null || !gameState.isPlaying)
+                if(playerLabel == null || !gameState.isPlaying)
                 {
                     return false;
                 }
                 var player = gameState.game.getCurrentPlayer();
                 var colorString = player.Color == 'W' ? "White" : "Black";
                 var color = player.Color == 'W' ? Color.White : Color.Black;
-                label.Text = String.Format("{0}'s Turn! [{1}]", player.Name, colorString);
-                label.TextColor = color;
+                playerLabel.Text = String.Format("{0}'s Turn! [{1}]", player.Name, colorString);
+                playerLabel.TextColor = color;
 
                 return true; 
             });
@@ -182,6 +189,17 @@ namespace Reversi
         private Panel NewOptionsMenu()
         {
             Panel panel = FullWindowPanel();
+            int left = (graphics.PreferredBackBufferWidth / 2) - buttonWidthDefault;
+            int top = (graphics.PreferredBackBufferHeight / 2) - buttonHeightDefault;
+            Panel sub = new Panel
+            {
+                Background = new SolidBrush(resources.colorOptionsBack),
+                Left = left - 10,
+                Top = top - 10,
+                Width =  280,
+                Height = 150,
+            };
+            panel.AddChild(sub);
 
             var grid = new Grid
             {
@@ -208,7 +226,8 @@ namespace Reversi
             {
                 Text = "Board Size",
                 HorizontalAlignment = HorizontalAlignment.Center,
-                GridRow = gridrow++
+                GridRow = gridrow++,
+                
             };
             grid.Widgets.Add(boardSizeLabel);
 
@@ -239,7 +258,9 @@ namespace Reversi
             var saveButton = new TextButton
             {
                 Text = "Save",
-                GridRow = gridrow++
+                GridRow = gridrow++,
+                Background = new SolidBrush(resources.colorButton),
+                OverBackground = new SolidBrush(resources.colorButtonOver),
             };
             grid.Widgets.Add(saveButton);
 
@@ -251,7 +272,9 @@ namespace Reversi
                 GridColumn = 1,
                 GridRow = gridrow++,
                 MinWidth = 100,
-                MaxWidth = 100
+                MaxWidth = 100,
+                Background = new SolidBrush(resources.colorButton),
+                OverBackground = new SolidBrush(resources.colorButtonOver),
             };
             grid.Widgets.Add(boardSizeTextBox);
 
@@ -261,7 +284,9 @@ namespace Reversi
                 GridColumn = 1,
                 GridRow = gridrow++,
                 MinWidth = 100,
-                MaxWidth = 100
+                MaxWidth = 100,
+                Background = new SolidBrush(resources.colorButton),
+                OverBackground = new SolidBrush(resources.colorButtonOver),
             };
             grid.Widgets.Add(playerATextBox);
 
@@ -271,7 +296,9 @@ namespace Reversi
                 GridColumn = 1,
                 GridRow = gridrow++,
                 MinWidth = 100,
-                MaxWidth = 100
+                MaxWidth = 100,
+                Background = new SolidBrush(resources.colorButton),
+                OverBackground = new SolidBrush(resources.colorButtonOver),
             };
             grid.Widgets.Add(playerBTextBox);
 
@@ -279,8 +306,10 @@ namespace Reversi
             {
                 GridColumn = 1,
                 GridRow = gridrow++,
-                MinWidth = 100,
-                MaxWidth = 100,
+                //MinWidth = 100,
+                //MaxWidth = 100,
+                //Background = new SolidBrush(resources.colorButton),
+                //OverBackground = new SolidBrush(resources.colorButtonOver),
                 IsChecked = gameOptions.isGameTraditional
             };
             grid.Widgets.Add(traditionalSetupCheckBox);
@@ -342,7 +371,9 @@ namespace Reversi
                 Left = 5,
                 Top = 5,
                 Width = 50,
-                Height = 40
+                Height = 40,
+                Background = new SolidBrush(resources.colorButton),
+                OverBackground = new SolidBrush(resources.colorButtonOver),
             };
             button.TouchDown += (s, e) =>
             {
@@ -370,7 +401,7 @@ namespace Reversi
             Window window = new Window
             {
                 Left = Left,
-                Top = Top
+                Top = Top,
             };
             Label label = new Label
             {
@@ -382,5 +413,6 @@ namespace Reversi
             container.AddChild(window);
 
         }
+
     }
 }

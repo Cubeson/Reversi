@@ -3,13 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Myra.Graphics2D.UI;
-using Myra.Attributes;
-using Myra.MML;
-using Myra.Utility;
 using Myra;
-using FunctionTasker;
 namespace Reversi
 {
     
@@ -37,6 +31,7 @@ namespace Reversi
         }
         protected override void Initialize()
         {
+            
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _resources = new Resources();
             _options = new GameOptions();
@@ -77,8 +72,7 @@ namespace Reversi
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-            int size = _options.boardSize * _options.boardSize;
+            GraphicsDevice.Clear(_resources.colorBackground);
             menu.Draw();
             base.Draw(gameTime);
         }

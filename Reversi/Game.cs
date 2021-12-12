@@ -209,7 +209,7 @@ namespace Reversi
             // Make-move logic
 
             var mouse = Mouse.GetState();
-            if ((mouse.LeftButton == ButtonState.Pressed || mouse.RightButton == ButtonState.Pressed)
+            if ((mouse.LeftButton == ButtonState.Pressed)
                 && mouse.X > resources.startX && mouse.Y > resources.startY && mouse.X < resources.startX +
                 gameOptions.boardSize * resources.step && mouse.Y < resources.startY + gameOptions.boardSize * resources.step)
             {
@@ -217,7 +217,8 @@ namespace Reversi
                     mouse.X >= p.Value.X && mouse.Y >= p.Value.Y
                     && mouse.X <= p.Value.X + resources.step &&
                     mouse.Y <= p.Value.Y + resources.step).Key;
-                char color = (mouse.LeftButton == ButtonState.Pressed) ? 'W' : 'B';
+                //char color = (mouse.LeftButton == ButtonState.Pressed) ? 'W' : 'B';
+                char color = this.getCurrentPlayer().Color;
 
                 // Validate and make move..
                 if (CanMakeMove(pos.X, pos.Y, color))

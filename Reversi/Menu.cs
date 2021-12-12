@@ -22,6 +22,7 @@ namespace Reversi
         private readonly GameOptions gameOptions;
         private readonly Resources resources;
         private readonly ITasker tasker;
+        private GameTime gameTime;
         public Menu(GameState gameState,GameOptions gameOptions,Resources resources,GraphicsDeviceManager graphics, SpriteBatch spriteBatch)
         {
             this.tasker = new Tasker();
@@ -34,8 +35,9 @@ namespace Reversi
             desktop.Root = NewMainMenu();
         }
 
-        public void Draw()
+        public void Draw(GameTime gameTime)
         {
+            this.gameTime = gameTime;
             tasker.Update();
             desktop.Render();
         }
@@ -191,6 +193,21 @@ namespace Reversi
                 return true; 
             });
 
+            tasker.AddTask(() =>
+           {
+               if(!gameState.isPlaying)
+                return false;
+               if(gameState.game.playerVictory != null)
+               {
+                   var player = gameState.game.playerVictory;
+                   string msg = String.Format("Player: {0} Won!",player.Name);
+                   AddPopUpWindow(panel,msg, () => { gameState.DisposeGame(); desktop.Root = NewMainMenu(); });
+                   return false;
+               }
+
+               return true;
+           });
+
             return panel;
         }
 
@@ -241,7 +258,7 @@ namespace Reversi
 
             var playerALabel = new Label
             {
-                Text = "Player 1 Name",
+                Text = "Player Black Name",
                 HorizontalAlignment = HorizontalAlignment.Center,
                 GridRow = gridrow++
             };
@@ -249,7 +266,7 @@ namespace Reversi
 
             var playerBLabel = new Label
             {
-                Text = "Player 2 Name",
+                Text = "Player White Name",
                 HorizontalAlignment = HorizontalAlignment.Center,
                 GridRow = gridrow++
             };
@@ -349,8 +366,6 @@ namespace Reversi
                 {
                     err += "Changes were not saved.";
                     AddPopUpWindow(panel,
-                        graphics.PreferredBackBufferWidth / 2,
-                        graphics.PreferredBackBufferHeight / 2,
                         err);
                     return;
                 }
@@ -404,13 +419,20 @@ namespace Reversi
             return panel;
         }
 
-        private void AddPopUpWindow(MultipleItemsContainerBase container, int Left = 50, int Top = 50, string message = "Exit")
+        private void AddPopUpWindow(MultipleItemsContainerBase container, string message = "Exit", Action onClosedAction = null)
         {
             Window window = new Window
             {
-                Left = Left,
-                Top = Top,
+                Left = graphics.PreferredBackBufferWidth/2,
+                Top = graphics.PreferredBackBufferHeight/2,
             };
+            if (onClosedAction != null)
+            {
+                window.Closed += (s, e) =>
+                {
+                    onClosedAction();
+                };
+            }
             Label label = new Label
             {
                 Text = message,

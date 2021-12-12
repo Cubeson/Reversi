@@ -75,7 +75,7 @@ namespace Reversi
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(_resources.colorBackground);
-            menu.Draw();
+            menu.Draw(gameTime);
             base.Draw(gameTime);
         }
 

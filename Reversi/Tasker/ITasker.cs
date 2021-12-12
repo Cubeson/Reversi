@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace FunctionTasker
 {
-    public delegate bool Func();
     interface ITasker
     {
-        public void AddTask(Func func);
+        public void AddTask(Func<bool> func);
         public void Update();
         public bool IsEmpty();
     }

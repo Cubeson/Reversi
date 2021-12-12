@@ -13,6 +13,7 @@ namespace Reversi
         private Utils utils = new Utils();
         private List<Point> whiteLegal = new List<Point>();
         private List<Point> blackLegal = new List<Point>();
+        public Player playerVictory { get; private set; }
 
         internal Square[,] Board => this.board;
 
@@ -207,6 +208,15 @@ namespace Reversi
         public void UserUpdate(Resources resources, GameOptions gameOptions)
         {
             // Make-move logic
+            if(this.whiteLegal.Count == 0 && players[1].HasTurn)
+            {
+                playerVictory = players[0];
+                return;
+            }else if(this.blackLegal.Count == 0 && players[0].HasTurn)
+            {
+                playerVictory = players[1];
+                return;
+            }
 
             var mouse = Mouse.GetState();
             if ((mouse.LeftButton == ButtonState.Pressed)

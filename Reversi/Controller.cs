@@ -48,6 +48,8 @@ namespace Reversi
             _resources.squareTextureDark = Content.Load<Texture2D>("textures/square_green_dark");
             _resources.circleWhite = Content.Load<Texture2D>("textures/circle_white");
             _resources.circleBlack = Content.Load<Texture2D>("textures/circle_black");
+            _resources.whiteRectangle = new Texture2D(GraphicsDevice, 1, 1);
+            _resources.whiteRectangle.SetData(new[] { Color.White });
             _resources.font = Content.Load<SpriteFont>("File");
         }
 

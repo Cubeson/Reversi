@@ -134,6 +134,7 @@ namespace Reversi
                 {
                     return false;
                 }
+                Game game = gameState.game;
 
                 int totalWidth = graphics.PreferredBackBufferWidth;
                 int totalHeight = graphics.PreferredBackBufferHeight;
@@ -152,8 +153,8 @@ namespace Reversi
                         var destination = new Rectangle(p.X, p.Y, resources.step, resources.step);
 
                         Texture2D texture = lightSquare == true ?
-                            resources.squareTextureLight : resources.squareTextureDark;
-                        spriteBatch.Draw(texture, destination, Color.White);
+                            resources.squareTextureLight : resources.squareTextureDark;  
+;                        spriteBatch.Draw(texture, destination, Color.White);
 
                         Square square = this.gameState.game.Board[i, j];
                         if (!square.IsEmpty)
@@ -162,6 +163,13 @@ namespace Reversi
                                 resources.circleWhite : resources.circleBlack;
                             spriteBatch.Draw(disk, destination, Color.White);
                         }
+
+                        if (game.IsLegal(i, j, game.getCurrentPlayer().Color))
+                        {
+                            spriteBatch.Draw(resources.whiteRectangle,destination,
+                                resources.colorHighlightLegal);
+                        }
+
                         lightSquare = !lightSquare;
                     }
                 }
@@ -334,12 +342,12 @@ namespace Reversi
                     }
                     if (throwException)
                     {
-                        err += "Changes were not saved.";
                         throw new FormatException();
                     }
                 }
                 catch (FormatException)
                 {
+                    err += "Changes were not saved.";
                     AddPopUpWindow(panel,
                         graphics.PreferredBackBufferWidth / 2,
                         graphics.PreferredBackBufferHeight / 2,

@@ -63,7 +63,8 @@ namespace Reversi
                     _gameState.game.UpdateBoardPositions(_graphics,_resources);
                     _gameState.shouldUpdate = false;
                 }
-                _gameState.game.UserUpdate(_resources, _options);
+                if(_gameState.allowMove)
+                    _gameState.game.UserUpdate(_resources, _options);
             }
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed
                 || Keyboard.GetState().IsKeyDown(Keys.Escape)

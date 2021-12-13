@@ -6,8 +6,15 @@ using System.Linq;
 
 namespace Reversi
 {
+
+    
     internal class Game : IGame
     {
+        public static readonly Player PlayerNoOne = new Player("No one")
+        {
+            Color = 'N',
+            HasTurn = false
+        };
         private Square[,] board;
         private Player[] players;
         private readonly Utils utils = new Utils();
@@ -235,6 +242,8 @@ namespace Reversi
                 }
                 if (counts[0] > counts[1]) playerVictory = players[0];
                 if (counts[0] < counts[1]) playerVictory = players[1];
+                if (counts[0] == counts[1]) playerVictory = PlayerNoOne;
+
                 // jest jeszcze jeden przypadek.. remis.. co wtedy?
             }
 

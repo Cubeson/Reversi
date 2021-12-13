@@ -130,6 +130,22 @@ namespace Reversi
 
             panel.AddChild(playerLabel);
 
+            double timeToWait = 500d;
+            tasker.AddTask(() =>
+           {
+               if (!gameState.isPlaying) return false;
+               var timeSpan = gameTime.ElapsedGameTime;
+               var x = timeSpan.TotalMilliseconds;
+               timeToWait -= x;
+               if(timeToWait < 0)
+               {
+                   //AddPopUpWindow(panel,String.Format("{0}",x));
+                   gameState.allowMove = true;
+                   return false;
+               }
+               return true;
+           });
+
             tasker.AddTask( () =>
             {
                 if (!gameState.isPlaying)
@@ -166,7 +182,7 @@ namespace Reversi
                             spriteBatch.Draw(disk, destination, Color.White);
                         }
 
-                        if (game.IsLegal(i, j, game.getCurrentPlayer().Color))
+                        if (game.IsLegal(i, j, game.GetCurrentPlayer().Color))
                         {
                             spriteBatch.Draw(resources.whiteRectangle,destination,
                                 resources.colorHighlightLegal);
@@ -184,7 +200,7 @@ namespace Reversi
                 {
                     return false;
                 }
-                var player = gameState.game.getCurrentPlayer();
+                var player = gameState.game.GetCurrentPlayer();
                 var colorString = player.Color == 'W' ? "White" : "Black";
                 var color = player.Color == 'W' ? Color.White : Color.Black;
                 playerLabel.Text = String.Format("{0}'s Turn! [{1}]", player.Name, colorString);
@@ -199,10 +215,14 @@ namespace Reversi
                 return false;
                if(gameState.game.playerVictory != null)
                {
-                   var player = gameState.game.playerVictory;
-                   string msg = String.Format("Player: {0} Won!",player.Name);
-                   AddPopUpWindow(panel,msg, () => { gameState.DisposeGame(); desktop.Root = NewMainMenu(); });
-                   return false;
+                    var player = gameState.game.playerVictory;
+                    string msg = "";
+                    if(player == Game.PlayerNoOne)
+                       msg = String.Format("It's a tie! No one won!");
+                   else
+                        msg = String.Format("Player: {0} won!",player.Name);
+                    AddPopUpWindow(panel,msg, () => { gameState.DisposeGame(); desktop.Root = NewMainMenu(); });
+                    return false;
                }
 
                return true;

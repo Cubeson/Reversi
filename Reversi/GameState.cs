@@ -9,6 +9,7 @@ namespace Reversi
         public Game game { get; private set; }
         public bool isPlaying { get; private set; }
         public bool shouldUpdate = true;
+        public bool allowMove = false; // disable controls to prevent unintentional moves after starting new game
         public GameOptions options { get; private set; }
         public GameState(GameOptions options)
         {
@@ -36,6 +37,7 @@ namespace Reversi
             this.game.NewGame();
             this.isPlaying = true;
             this.shouldUpdate = true;
+            this.allowMove = false;
         }
     }
 }

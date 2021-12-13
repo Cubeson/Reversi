@@ -10,7 +10,7 @@ namespace Reversi
     {
         private Square[,] board;
         private Player[] players;
-        private Utils utils = new Utils();
+        private readonly Utils utils = new Utils();
         private List<Point> whiteLegal = new List<Point>();
         private List<Point> blackLegal = new List<Point>();
         public Player playerVictory { get; private set; }
@@ -20,10 +20,11 @@ namespace Reversi
         private int BoardSize { get; set; }
         private bool TraditionalSetup { get; set; }
 
-        public Player getCurrentPlayer()
+        public Player GetCurrentPlayer()
         {
             return (from p in players where p.HasTurn select p).First();
         }
+
         public void Init(Player[] players, int size = 8, bool traditional = true)
         {
             if (size % 2 != 0 || size < 4)
@@ -181,6 +182,14 @@ namespace Reversi
 
             this.whiteLegal = this.GenerateLegalMoves('W');
             this.blackLegal = this.GenerateLegalMoves('B');
+
+            // In case the opponent was blocked (no legal moves)
+            if (moveMaker.Color == 'W' && this.blackLegal.Count == 0 ||
+                moveMaker.Color == 'B' && this.whiteLegal.Count == 0)
+            {
+                moveMaker.HasTurn = true;
+                opponent.HasTurn = false;
+            }
         }
 
         public void NewGame()
@@ -203,38 +212,53 @@ namespace Reversi
             this.players[1].Color = 'W';
             this.players[0].HasTurn = true;
             this.players[1].HasTurn = false;
-            
         }
+
         public void UserUpdate(Resources resources, GameOptions gameOptions)
         {
-            // Make-move logic
-            if(this.whiteLegal.Count == 0 && players[1].HasTurn)
+            // Victory handler
+            if (this.whiteLegal.Count == 0 && this.blackLegal.Count == 0)
             {
-                playerVictory = players[0];
-                return;
-            }else if(this.blackLegal.Count == 0 && players[0].HasTurn)
-            {
-                playerVictory = players[1];
-                return;
+                int[] counts = new int[2] { 0, 0 };
+                for (int player = 0; player <= 1; player++)
+                {
+                    for (int x = 0; x < BoardSize; x++)
+                    {
+                        for (int y = 0; y < BoardSize; y++)
+                        {
+                            char disk = this.board[x, y].Disk;
+                            if (player == 0 && disk == 'B' ||
+                                player == 1 && disk == 'W')
+                                counts[player]++;
+                        }
+                    }
+                }
+                if (counts[0] > counts[1]) playerVictory = players[0];
+                if (counts[0] < counts[1]) playerVictory = players[1];
+                // jest jeszcze jeden przypadek.. remis.. co wtedy?
             }
+
+            // Make-move logic
 
             var mouse = Mouse.GetState();
             if ((mouse.LeftButton == ButtonState.Pressed)
-                && mouse.X > resources.startX && mouse.Y > resources.startY && mouse.X < resources.startX +
-                gameOptions.boardSize * resources.step && mouse.Y < resources.startY + gameOptions.boardSize * resources.step)
+                && mouse.X > resources.startX && mouse.Y > resources.startY
+                && mouse.X < resources.startX + gameOptions.boardSize * resources.step
+                && mouse.Y < resources.startY + gameOptions.boardSize * resources.step)
             {
                 var pos = resources.coordTranslator.First(p =>
                     mouse.X >= p.Value.X && mouse.Y >= p.Value.Y
                     && mouse.X <= p.Value.X + resources.step &&
                     mouse.Y <= p.Value.Y + resources.step).Key;
                 //char color = (mouse.LeftButton == ButtonState.Pressed) ? 'W' : 'B';
-                char color = this.getCurrentPlayer().Color;
+                char color = this.GetCurrentPlayer().Color;
 
                 // Validate and make move..
-                if (CanMakeMove(pos.X, pos.Y, color))
-                    MakeMove(pos.X, pos.Y, color);
+                if (this.CanMakeMove(pos.X, pos.Y, color))
+                    this.MakeMove(pos.X, pos.Y, color);
             }
         }
+
         public void UpdateBoardPositions(GraphicsDeviceManager graphics, Resources resources)
         {
             int totalWidth = graphics.PreferredBackBufferWidth;
@@ -247,7 +271,7 @@ namespace Reversi
             int count = width < height ? width : height;
             resources.startX = (totalWidth - count) / 2;
             resources.startY = (totalHeight - count) / 2;
-            resources.step = count / BoardSize;
+            resources.step = count / this.BoardSize;
 
             // Then translate the coordinates to access squares faster.
             resources.coordTranslator.Clear();
@@ -260,9 +284,6 @@ namespace Reversi
                     resources.coordTranslator.Add(new Point(x, y), new Point(tx, ty));
                 }
             }
-            
         }
     }
-
  }
-

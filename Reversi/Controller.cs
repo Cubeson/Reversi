@@ -4,9 +4,9 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using Myra;
+
 namespace Reversi
 {
-    
     internal class Controller : Microsoft.Xna.Framework.Game
     {
         private GraphicsDeviceManager _graphics;
@@ -16,6 +16,7 @@ namespace Reversi
         GameOptions _options;
         Resources _resources;
         Menu menu;
+
         public Controller()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -29,9 +30,9 @@ namespace Reversi
             if(_gameState != null)
             _gameState.shouldUpdate = true;
         }
+
         protected override void Initialize()
         {
-            
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _resources = new Resources();
             _options = new GameOptions();
@@ -78,6 +79,5 @@ namespace Reversi
             menu.Draw(gameTime);
             base.Draw(gameTime);
         }
-
     }
 }

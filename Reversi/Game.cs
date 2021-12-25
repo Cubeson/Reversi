@@ -2,12 +2,11 @@
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Reversi
 {
-
-    
     internal class Game : IGame
     {
         public static readonly Player PlayerNoOne = new Player("No one")
@@ -15,15 +14,16 @@ namespace Reversi
             Color = 'N',
             HasTurn = false
         };
+
         private Square[,] board;
         private Player[] players;
         private readonly Utils utils = new Utils();
         private List<Point> whiteLegal = new List<Point>();
         private List<Point> blackLegal = new List<Point>();
-        public Player playerVictory { get; private set; }
+        private string gameFile = "";
 
+        public Player PlayerVictory { get; private set; }
         internal Square[,] Board => this.board;
-
         private int BoardSize { get; set; }
         private bool TraditionalSetup { get; set; }
 
@@ -46,14 +46,24 @@ namespace Reversi
                 this.players = players;
                 this.players[0].Color = 'B';
                 this.players[1].Color = 'W';
-                return;
+            }
+            else
+            {
+                this.players = new Player[2];
+                this.players[0].Color = 'B';
+                this.players[1].Color = 'W';
+                this.players[0].Name = "A";
+                this.players[1].Name = "B";
             }
 
-            this.players = new Player[2];
-            this.players[0].Color = 'B';
-            this.players[1].Color = 'W';
-            this.players[0].Name = "A";
-            this.players[1].Name = "B";
+            // init a file to save moves
+            this.gameFile = DateTime.Now.ToString("MM/dd/yyyy HH-mm-ss") + ".txt";
+            using StreamWriter sw = File.CreateText(this.gameFile);
+            sw.WriteLine("Traditional setup: " + this.TraditionalSetup.ToString());
+            sw.WriteLine("Board size: " + this.BoardSize.ToString());
+            sw.WriteLine("Player white: " + this.players[0].Name);
+            sw.WriteLine("Player black: " + this.players[1].Name);
+            sw.Write("Move history: ");
         }
 
         public bool CanMakeMove(int x, int y, char color)
@@ -175,6 +185,10 @@ namespace Reversi
             // Check if player can make a desired move
             if (!this.CanMakeMove(x, y, color)) return;
 
+            // Save a move to the file
+            File.AppendAllText(this.gameFile, string.Format(
+                "{0}{1} ", (char)(x + 97), y + 1));
+
             // Flip the disks to opposite color
             List<Point> disksToFlip = this.FindDisksToFlip(x, y, color);
             foreach (Point p in disksToFlip) this.board[p.X, p.Y].Place(color);
@@ -240,9 +254,9 @@ namespace Reversi
                         }
                     }
                 }
-                if (counts[0] > counts[1]) playerVictory = players[0];
-                if (counts[0] < counts[1]) playerVictory = players[1];
-                if (counts[0] == counts[1]) playerVictory = PlayerNoOne;
+                if (counts[0] > counts[1]) PlayerVictory = players[0];
+                if (counts[0] < counts[1]) PlayerVictory = players[1];
+                if (counts[0] == counts[1]) PlayerVictory = PlayerNoOne;
 
                 // jest jeszcze jeden przypadek.. remis.. co wtedy?
             }

@@ -23,7 +23,9 @@ namespace Reversi
         private readonly Resources resources;
         private readonly ITasker tasker;
         private GameTime gameTime;
-        public Menu(GameState gameState,GameOptions gameOptions,Resources resources,GraphicsDeviceManager graphics, SpriteBatch spriteBatch)
+
+        public Menu(GameState gameState,GameOptions gameOptions, Resources resources,
+            GraphicsDeviceManager graphics, SpriteBatch spriteBatch)
         {
             this.tasker = new Tasker();
             this.graphics = graphics;
@@ -132,7 +134,7 @@ namespace Reversi
 
             double timeToWait = 500d;
             tasker.AddTask(() =>
-           {
+            {
                if (!gameState.isPlaying) return false;
                var timeSpan = gameTime.ElapsedGameTime;
                var x = timeSpan.TotalMilliseconds;
@@ -144,7 +146,7 @@ namespace Reversi
                    return false;
                }
                return true;
-           });
+            });
 
             tasker.AddTask( () =>
             {
@@ -210,12 +212,12 @@ namespace Reversi
             });
 
             tasker.AddTask(() =>
-           {
+            {
                if(!gameState.isPlaying)
                 return false;
-               if(gameState.game.playerVictory != null)
+               if(gameState.game.PlayerVictory != null)
                {
-                    var player = gameState.game.playerVictory;
+                    var player = gameState.game.PlayerVictory;
                     string msg = "";
                     if(player == Game.PlayerNoOne)
                        msg = String.Format("It's a tie! No one won!");
@@ -226,7 +228,7 @@ namespace Reversi
                }
 
                return true;
-           });
+            });
 
             return panel;
         }
@@ -461,8 +463,6 @@ namespace Reversi
             window.Content = label;
 
             container.AddChild(window);
-
         }
-
     }
 }

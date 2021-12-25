@@ -11,6 +11,5 @@ namespace Reversi
         public string playerA = "A";
         public string playerB = "B";
         public bool isGameTraditional = true;
-
     }
 }

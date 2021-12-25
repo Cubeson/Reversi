@@ -11,17 +11,20 @@ namespace Reversi
         public bool shouldUpdate = true;
         public bool allowMove = false; // disable controls to prevent unintentional moves after starting new game
         public GameOptions options { get; private set; }
+
         public GameState(GameOptions options)
         {
             game = new Game(); 
             this.options = options;
         }
+
         public void DisposeGame()
         {
             //game.Dispose();
             game = null;
             this.isPlaying = false;
         }
+
         public Game getGame()
         {
             return game;

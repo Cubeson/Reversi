@@ -40,7 +40,5 @@ namespace Reversi
         public readonly Color colorBackground       = HexToColor("99D98CFF");
         public readonly Color colorOptionsBack      = HexToColor("76C893FF");
         public readonly Color colorHighlightLegal   = Color.Blue * 0.33f;
-        
-
     }
 }
